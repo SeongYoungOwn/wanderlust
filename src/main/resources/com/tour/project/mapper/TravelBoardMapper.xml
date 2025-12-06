@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.TravelBoardDAO">
+    
+    <!-- 사용자의 여행 게시글 수 조회 -->
+    <select id="getUserPostCount" parameterType="String" resultType="int">
+        <!-- 실제 travel_board 테이블이 있으면 사용, 없으면 community_board 사용 -->
+        SELECT COUNT(*)
+        FROM community_board
+        WHERE board_writer = #{userId}
+    </select>
+    
+    <!-- 사용자의 여행 스타일 분석 -->
+    <select id="getUserTravelStyles" parameterType="String" resultType="map">
+        <!-- 임시로 하드코딩된 값 반환, 실제로는 카테고리별 집계 필요 -->
+        SELECT 'adventure' as style, 5 as count
+        FROM dual
+    </select>
+    
+</mapper>

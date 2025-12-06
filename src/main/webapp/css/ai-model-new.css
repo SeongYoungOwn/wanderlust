@@ -1,0 +1,182 @@
+/* AI Model CSS - 새로 생성된 파일 */
+
+/* CSS 변수 정의 */
+:root {
+    --bg-color: #0a0620;
+    --card-bg-color: rgba(25, 20, 60, 0.5);
+    --card-border-color: rgba(139, 92, 246, 0.2);
+    --text-primary: #FFFFFF;
+    --text-secondary: #9ca3af;
+    --accent-purple: #8b5cf6;
+    --accent-pink: #ec4899;
+    --font-family: 'Poppins', sans-serif;
+}
+
+/* 기본 리셋 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* body 스타일 */
+body {
+    font-family: var(--font-family);
+    background: #0a0f1e !important;
+    color: var(--text-secondary) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 2rem !important;
+    min-height: 100vh !important;
+    font-size: 16px !important;
+    position: relative !important;
+    overflow-x: hidden !important;
+    margin-top: 70px !important;
+}
+
+/* 배경 효과 */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at top left, rgba(39, 215, 184, 0.1), transparent),
+                radial-gradient(ellipse at bottom right, rgba(255, 107, 107, 0.1), transparent);
+    z-index: -3;
+}
+
+.bg-gradient {
+    position: fixed !important;
+    inset: 0 !important;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.02), transparent, rgba(255, 255, 255, 0.02)) !important;
+    background-size: 300% 300% !important;
+    animation: moveGradient 15s ease infinite !important;
+    z-index: -2 !important;
+}
+
+@keyframes moveGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* 메인 컨테이너 */
+.main-container {
+    display: grid !important;
+    grid-template-columns: 300fr 400fr 300fr !important;
+    gap: 2rem !important;
+    width: 100% !important;
+    max-width: 75rem !important;
+    position: relative !important;
+    z-index: 5 !important;
+    min-height: 100vh !important;
+    padding: 2rem !important;
+    margin: 0 auto !important;
+}
+
+/* 카드 기본 스타일 */
+.card {
+    background: rgba(25, 20, 60, 0.3) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    border-radius: 1.5rem !important;
+    padding: 2rem !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    z-index: 10 !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.card:hover {
+    background: rgba(25, 20, 60, 0.5) !important;
+    border-color: rgba(139, 92, 246, 0.4) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15) !important;
+}
+
+/* 컬럼 레이아웃 */
+.left-column, .center-column, .right-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+}
+
+.center-column {
+    gap: 2rem !important;
+}
+
+/* 프로모 카드 */
+.promo-card {
+    text-align: center !important;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.1)) !important;
+}
+
+.promo-card .logo {
+    width: 60px !important;
+    height: 60px !important;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink)) !important;
+    border-radius: 50% !important;
+    margin: 0 auto 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.8rem !important;
+}
+
+.promo-card h2 {
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* 사용자 카드 */
+.users-card {
+    text-align: center !important;
+    padding: 1.5rem !important;
+}
+
+.users-card .count {
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    color: var(--accent-purple) !important;
+    display: block !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.users-card .label {
+    color: var(--text-secondary) !important;
+    font-size: 0.9rem !important;
+    display: block !important;
+    margin-bottom: 1rem !important;
+}
+
+/* 메인 타이틀 */
+.main-title {
+    text-align: center !important;
+    margin-bottom: 2rem !important;
+}
+
+.main-title h1 {
+    font-size: 3rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink), #f97316) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    margin-bottom: 1rem !important;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+    .main-container {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+        max-width: 600px !important;
+    }
+    
+    .main-title h1 {
+        font-size: 2.5rem !important;
+    }
+}

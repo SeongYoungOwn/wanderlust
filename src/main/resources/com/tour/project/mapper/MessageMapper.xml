@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tour.project.dao.MessageDAO">
+
+    <!-- 쪽지 전송 -->
+    <insert id="sendMessage" parameterType="MessageDTO">
+        INSERT INTO messages (sender_id, receiver_id, message_title, message_content, sent_date)
+        VALUES (#{senderId}, #{receiverId}, #{messageTitle}, #{messageContent}, NOW())
+    </insert>
+
+    <!-- 받은 쪽지 목록 조회 (페이징 포함) -->
+    <select id="getReceivedMessages" parameterType="map" resultType="MessageDTO">
+        SELECT 
+            m.message_id as messageId,
+            m.sender_id as senderId,
+            s.user_name as senderName,
+            m.receiver_id as receiverId,
+            r.user_name as receiverName,
+            m.message_title as messageTitle,
+            m.message_content as messageContent,
+            m.sent_date as sentDate,
+            m.read_date as readDate,
+            m.is_read as isRead,
+            m.sender_deleted as senderDeleted,
+            m.receiver_deleted as receiverDeleted
+        FROM messages m
+        JOIN member s ON m.sender_id = s.user_id
+        JOIN member r ON m.receiver_id = r.user_id
+        WHERE m.receiver_id = #{userId} 
+        AND m.receiver_deleted = false
+        ORDER BY m.sent_date DESC
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 보낸 쪽지 목록 조회 (페이징 포함) -->
+    <select id="getSentMessages" parameterType="map" resultType="MessageDTO">
+        SELECT 
+            m.message_id as messageId,
+            m.sender_id as senderId,
+            s.user_name as senderName,
+            m.receiver_id as receiverId,
+            r.user_name as receiverName,
+            m.message_title as messageTitle,
+            m.message_content as messageContent,
+            m.sent_date as sentDate,
+            m.read_date as readDate,
+            m.is_read as isRead,
+            m.sender_deleted as senderDeleted,
+            m.receiver_deleted as receiverDeleted
+        FROM messages m
+        JOIN member s ON m.sender_id = s.user_id
+        JOIN member r ON m.receiver_id = r.user_id
+        WHERE m.sender_id = #{userId} 
+        AND m.sender_deleted = false
+        ORDER BY m.sent_date DESC
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 쪽지 상세 조회 -->
+    <select id="getMessageById" parameterType="int" resultType="MessageDTO">
+        SELECT 
+            m.message_id as messageId,
+            m.sender_id as senderId,
+            s.user_name as senderName,
+            m.receiver_id as receiverId,
+            r.user_name as receiverName,
+            m.message_title as messageTitle,
+            m.message_content as messageContent,
+            m.sent_date as sentDate,
+            m.read_date as readDate,
+            m.is_read as isRead,
+            m.sender_deleted as senderDeleted,
+            m.receiver_deleted as receiverDeleted
+        FROM messages m
+        JOIN member s ON m.sender_id = s.user_id
+        JOIN member r ON m.receiver_id = r.user_id
+        WHERE m.message_id = #{messageId}
+    </select>
+
+    <!-- 쪽지 읽음 처리 -->
+    <update id="markAsRead" parameterType="int">
+        UPDATE messages 
+        SET is_read = true, read_date = NOW() 
+        WHERE message_id = #{messageId} AND is_read = false
+    </update>
+
+    <!-- 받은 쪽지 삭제 -->
+    <update id="deleteReceivedMessage" parameterType="map">
+        UPDATE messages 
+        SET receiver_deleted = true 
+        WHERE message_id = #{messageId} AND receiver_id = #{userId}
+    </update>
+
+    <!-- 보낸 쪽지 삭제 -->
+    <update id="deleteSentMessage" parameterType="map">
+        UPDATE messages 
+        SET sender_deleted = true 
+        WHERE message_id = #{messageId} AND sender_id = #{userId}
+    </update>
+
+    <!-- 읽지 않은 쪽지 개수 -->
+    <select id="getUnreadMessageCount" parameterType="String" resultType="int">
+        SELECT COUNT(*) 
+        FROM messages 
+        WHERE receiver_id = #{userId} 
+        AND is_read = false 
+        AND receiver_deleted = false
+    </select>
+
+    <!-- 전체 받은 쪽지 개수 -->
+    <select id="getReceivedMessageCount" parameterType="String" resultType="int">
+        SELECT COUNT(*) 
+        FROM messages 
+        WHERE receiver_id = #{userId} 
+        AND receiver_deleted = false
+    </select>
+
+    <!-- 전체 보낸 쪽지 개수 -->
+    <select id="getSentMessageCount" parameterType="String" resultType="int">
+        SELECT COUNT(*) 
+        FROM messages 
+        WHERE sender_id = #{userId} 
+        AND sender_deleted = false
+    </select>
+
+    <!-- 받은 쪽지 검색 -->
+    <select id="searchReceivedMessages" parameterType="map" resultType="MessageDTO">
+        SELECT 
+            m.message_id as messageId,
+            m.sender_id as senderId,
+            s.user_name as senderName,
+            m.receiver_id as receiverId,
+            r.user_name as receiverName,
+            m.message_title as messageTitle,
+            m.message_content as messageContent,
+            m.sent_date as sentDate,
+            m.read_date as readDate,
+            m.is_read as isRead,
+            m.sender_deleted as senderDeleted,
+            m.receiver_deleted as receiverDeleted
+        FROM messages m
+        JOIN member s ON m.sender_id = s.user_id
+        JOIN member r ON m.receiver_id = r.user_id
+        WHERE m.receiver_id = #{userId} 
+        AND m.receiver_deleted = false
+        <if test="searchType == 'title'">
+            AND m.message_title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="searchType == 'content'">
+            AND m.message_content LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="searchType == 'sender'">
+            AND s.user_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="searchType == 'all'">
+            AND (m.message_title LIKE CONCAT('%', #{keyword}, '%') 
+                 OR m.message_content LIKE CONCAT('%', #{keyword}, '%')
+                 OR s.user_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY m.sent_date DESC
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 보낸 쪽지 검색 -->
+    <select id="searchSentMessages" parameterType="map" resultType="MessageDTO">
+        SELECT 
+            m.message_id as messageId,
+            m.sender_id as senderId,
+            s.user_name as senderName,
+            m.receiver_id as receiverId,
+            r.user_name as receiverName,
+            m.message_title as messageTitle,
+            m.message_content as messageContent,
+            m.sent_date as sentDate,
+            m.read_date as readDate,
+            m.is_read as isRead,
+            m.sender_deleted as senderDeleted,
+            m.receiver_deleted as receiverDeleted
+        FROM messages m
+        JOIN member s ON m.sender_id = s.user_id
+        JOIN member r ON m.receiver_id = r.user_id
+        WHERE m.sender_id = #{userId} 
+        AND m.sender_deleted = false
+        <if test="searchType == 'title'">
+            AND m.message_title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="searchType == 'content'">
+            AND m.message_content LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="searchType == 'receiver'">
+            AND r.user_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="searchType == 'all'">
+            AND (m.message_title LIKE CONCAT('%', #{keyword}, '%') 
+                 OR m.message_content LIKE CONCAT('%', #{keyword}, '%')
+                 OR r.user_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY m.sent_date DESC
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+</mapper>

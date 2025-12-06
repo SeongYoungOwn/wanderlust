@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tour.project.dao.AttendanceDAO">
+    
+    <!-- 출석 기록 -->
+    <insert id="recordAttendance">
+        INSERT INTO user_attendance (user_id, attendance_date)
+        VALUES (#{userId}, #{attendanceDate})
+        ON DUPLICATE KEY UPDATE attendance_date = attendance_date
+    </insert>
+    
+    <!-- 오늘 출석 여부 확인 -->
+    <select id="hasAttendanceToday" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM user_attendance
+        WHERE user_id = #{userId} AND attendance_date = #{attendanceDate}
+    </select>
+    
+    <!-- 연속 출석 일수 조회 -->
+    <select id="getConsecutiveAttendanceDays" resultType="int">
+        SELECT 
+            CASE 
+                WHEN COUNT(*) = 0 THEN 0
+                ELSE (
+                    SELECT COUNT(*) 
+                    FROM (
+                        SELECT attendance_date,
+                               ROW_NUMBER() OVER (ORDER BY attendance_date DESC) as rn,
+                               DATE_SUB(attendance_date, INTERVAL ROW_NUMBER() OVER (ORDER BY attendance_date DESC) - 1 DAY) as group_date
+                        FROM user_attendance 
+                        WHERE user_id = #{userId} 
+                        ORDER BY attendance_date DESC
+                    ) t1
+                    WHERE group_date = (
+                        SELECT DATE_SUB(attendance_date, INTERVAL ROW_NUMBER() OVER (ORDER BY attendance_date DESC) - 1 DAY) as group_date
+                        FROM user_attendance 
+                        WHERE user_id = #{userId} 
+                        ORDER BY attendance_date DESC 
+                        LIMIT 1
+                    )
+                )
+            END as consecutive_days
+        FROM user_attendance 
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 월별 출석 일수 조회 -->
+    <select id="getMonthlyAttendanceDays" resultType="int">
+        SELECT COUNT(*)
+        FROM user_attendance
+        WHERE user_id = #{userId} 
+          AND YEAR(attendance_date) = #{year}
+          AND MONTH(attendance_date) = #{month}
+    </select>
+    
+    <!-- 연간 출석 일수 조회 -->
+    <select id="getYearlyAttendanceDays" resultType="int">
+        SELECT COUNT(*)
+        FROM user_attendance
+        WHERE user_id = #{userId} 
+          AND YEAR(attendance_date) = #{year}
+    </select>
+    
+    <!-- 총 출석 일수 조회 -->
+    <select id="getTotalAttendanceDays" resultType="int">
+        SELECT COUNT(*)
+        FROM user_attendance
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 최근 출석 날짜들 조회 -->
+    <select id="getRecentAttendanceDates" resultType="java.time.LocalDate">
+        SELECT attendance_date
+        FROM user_attendance
+        WHERE user_id = #{userId}
+        ORDER BY attendance_date DESC
+        LIMIT #{limit}
+    </select>
+    
+    <!-- 특정 기간 출석 여부 확인 -->
+    <select id="getAttendanceBetweenDates" resultType="java.time.LocalDate">
+        SELECT attendance_date
+        FROM user_attendance
+        WHERE user_id = #{userId}
+          AND attendance_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY attendance_date ASC
+    </select>
+    
+</mapper>

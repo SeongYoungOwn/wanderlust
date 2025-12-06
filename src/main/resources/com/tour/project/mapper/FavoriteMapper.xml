@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.FavoriteDAO">
+
+    <!-- 찜하기 추가 -->
+    <insert id="addFavorite">
+        INSERT INTO favorites (user_id, item_type, item_id, created_date)
+        VALUES (#{userId}, #{itemType}, #{itemId}, NOW())
+    </insert>
+    
+    <!-- 찜하기 삭제 -->
+    <delete id="removeFavorite">
+        DELETE FROM favorites 
+        WHERE user_id = #{userId} AND item_type = #{itemType} AND item_id = #{itemId}
+    </delete>
+    
+    <!-- 찜하기 여부 확인 -->
+    <select id="isFavorite" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM favorites
+        WHERE user_id = #{userId} AND item_type = #{itemType} AND item_id = #{itemId}
+    </select>
+    
+    <!-- 사용자별 찜 목록 조회 (여행계획과 커뮤니티 게시글 통합) -->
+    <select id="getFavoritesByUserId" parameterType="string" resultType="com.tour.project.dto.FavoriteDTO">
+        SELECT 
+            f.favorite_id as favoriteId,
+            f.user_id as userId,
+            f.item_type as itemType,
+            f.item_id as itemId,
+            f.created_date as createdDate,
+            -- 여행계획 정보
+            tp.plan_title as planTitle,
+            tp.plan_destination as planDestination,
+            tp.plan_start_date as planStartDate,
+            tp.plan_end_date as planEndDate,
+            tp.plan_writer as planWriter,
+            tpm.user_name as planWriterName,
+            -- 커뮤니티 게시글 정보
+            b.board_title as boardTitle,
+            b.board_category as boardCategory,
+            b.board_writer as boardWriter,
+            bm.user_name as boardWriterName,
+            b.board_regdate as boardRegdate
+        FROM favorites f
+        LEFT JOIN travel_plan tp ON f.item_type = 'TRAVEL_PLAN' AND f.item_id = tp.plan_id
+        LEFT JOIN member tpm ON tp.plan_writer = tpm.user_id
+        LEFT JOIN board b ON f.item_type = 'BOARD' AND f.item_id = b.board_id
+        LEFT JOIN member bm ON b.board_writer = bm.user_id
+        WHERE f.user_id = #{userId}
+        ORDER BY f.created_date DESC
+    </select>
+    
+    <!-- 사용자별 여행계획 찜 목록만 조회 -->
+    <select id="getTravelPlanFavoritesByUserId" parameterType="string" resultType="com.tour.project.dto.FavoriteDTO">
+        SELECT 
+            f.favorite_id as favoriteId,
+            f.user_id as userId,
+            f.item_type as itemType,
+            f.item_id as itemId,
+            f.created_date as createdDate,
+            tp.plan_title as planTitle,
+            tp.plan_destination as planDestination,
+            tp.plan_start_date as planStartDate,
+            tp.plan_end_date as planEndDate,
+            tp.plan_writer as planWriter,
+            m.user_name as planWriterName
+        FROM favorites f
+        INNER JOIN travel_plan tp ON f.item_id = tp.plan_id
+        LEFT JOIN member m ON tp.plan_writer = m.user_id
+        WHERE f.user_id = #{userId} AND f.item_type = 'TRAVEL_PLAN'
+        ORDER BY f.created_date DESC
+    </select>
+    
+    <!-- 사용자별 커뮤니티 게시글 찜 목록만 조회 -->
+    <select id="getBoardFavoritesByUserId" parameterType="string" resultType="com.tour.project.dto.FavoriteDTO">
+        SELECT 
+            f.favorite_id as favoriteId,
+            f.user_id as userId,
+            f.item_type as itemType,
+            f.item_id as itemId,
+            f.created_date as createdDate,
+            b.board_title as boardTitle,
+            b.board_category as boardCategory,
+            b.board_writer as boardWriter,
+            m.user_name as boardWriterName,
+            b.board_regdate as boardRegdate
+        FROM favorites f
+        INNER JOIN board b ON f.item_id = b.board_id
+        LEFT JOIN member m ON b.board_writer = m.user_id
+        WHERE f.user_id = #{userId} AND f.item_type = 'BOARD'
+        ORDER BY f.created_date DESC
+    </select>
+    
+    <!-- 특정 항목의 찜 개수 조회 -->
+    <select id="getFavoriteCount" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites
+        WHERE item_type = #{itemType} AND item_id = #{itemId}
+    </select>
+    
+    <!-- 사용자의 전체 찜 개수 조회 -->
+    <select id="getUserFavoriteCount" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 사용자의 유효한 여행계획 찜 개수 조회 -->
+    <select id="getValidTravelPlanFavoriteCount" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites f
+        INNER JOIN travel_plan tp ON f.item_id = tp.plan_id
+        WHERE f.user_id = #{userId} AND f.item_type = 'TRAVEL_PLAN'
+    </select>
+    
+    <!-- 사용자의 유효한 게시글 찜 개수 조회 -->
+    <select id="getValidBoardFavoriteCount" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites f
+        INNER JOIN board b ON f.item_id = b.board_id
+        WHERE f.user_id = #{userId} AND f.item_type = 'BOARD'
+    </select>
+
+</mapper>

@@ -1,0 +1,449 @@
+/* Guide List CSS - Travel List와 동일한 스타일 */
+
+/* 🎨 테마 시스템: CSS 변수 정의 */
+:root {
+    /* 라이트 테마 (기본) */
+    --bg-primary: #fdfbf7;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-header-gradient: linear-gradient(-45deg, #e0c3fc, #8ec5fc, #e0c3fc, #8ec5fc);
+
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --text-inverse: #ffffff;
+
+    --border-color: #e5e7eb;
+    --border-light: #f3f4f6;
+
+    --accent-primary: #ff6b6b;
+    --accent-secondary: #4ecdc4;
+    --accent-success: #10b981;
+    --accent-warning: #f59e0b;
+    --accent-danger: #ef4444;
+    --accent-info: #3b82f6;
+
+    --shadow-light: 0 4px 15px rgba(0,0,0,0.1);
+    --shadow-medium: 0 6px 20px rgba(0,0,0,0.15);
+    --shadow-card: 0 6px 20px rgba(255, 107, 107, 0.08), 0 3px 6px rgba(78, 205, 196, 0.06);
+}
+
+/* 🌙 다크 테마 */
+[data-theme="dark"] {
+    --bg-primary: #0f1419;
+    --bg-secondary: #1a1f2e;
+    --bg-card: #1e2532;
+    --bg-header-gradient: linear-gradient(-45deg, #2d1b69, #11998e, #2d1b69, #11998e);
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-inverse: #0f1419;
+
+    --border-color: #374151;
+    --border-light: #4b5563;
+
+    --accent-primary: #8b5cf6;
+    --accent-secondary: #06d6a0;
+    --accent-success: #34d399;
+    --accent-warning: #fbbf24;
+    --accent-danger: #f87171;
+    --accent-info: #60a5fa;
+
+    --shadow-light: 0 4px 15px rgba(0,0,0,0.4);
+    --shadow-medium: 0 6px 20px rgba(0,0,0,0.5);
+    --shadow-card: 0 6px 20px rgba(139, 92, 246, 0.15), 0 3px 6px rgba(6, 214, 160, 0.1);
+}
+
+/* 🌐 전역 스타일 - 테마 변수 적용 */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+/* 🎭 페이지 헤더 - 테마별 그라데이션 */
+.page-header {
+    background: var(--bg-header-gradient);
+    background-size: 400% 400%;
+    animation: galaxyAnimate 15s ease infinite;
+    color: var(--text-inverse);
+    padding: 120px 0 30px 0;
+    margin-top: 0;
+    position: relative;
+    overflow: hidden;
+    min-height: 40vh;
+    display: flex;
+    align-items: center;
+}
+
+@keyframes galaxyAnimate {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.page-title {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--text-inverse);
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    z-index: 10;
+    position: relative;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    letter-spacing: -0.5px;
+}
+
+.page-title i {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.3));
+    margin-right: 1rem;
+}
+
+.page-subtitle {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 300;
+    z-index: 10;
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* 장식적 요소들 */
+.header-glow {
+    position: absolute;
+    top: 30%;
+    left: 10%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 6s ease-in-out infinite;
+    z-index: 1;
+}
+
+.header-glow:nth-child(2) {
+    top: 20%;
+    right: 15%;
+    left: auto;
+    width: 150px;
+    height: 150px;
+    animation-delay: 3s;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
+}
+
+/* Travel Section */
+.travel-section {
+    padding: 3rem 0;
+    position: relative;
+    z-index: 5;
+}
+
+/* 검색 카드 */
+.search-card {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 1.8rem;
+    box-shadow: var(--shadow-card);
+    border: 1px solid var(--border-light);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.search-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+}
+
+.search-card:hover::before {
+    opacity: 0.1;
+}
+
+/* Primary Button */
+.primary-button {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: var(--text-inverse);
+    padding: 0.8rem 1.8rem;
+    border: none;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-light);
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.primary-button:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+    color: var(--text-inverse);
+}
+
+/* 가이드 카드 */
+.guide-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.guide-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.guide-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    border-color: var(--accent-primary);
+}
+
+.guide-card:hover::before {
+    opacity: 1;
+}
+
+.guide-card .card-body {
+    padding: 1.8rem;
+}
+
+/* 카드 제목 */
+.guide-card h5 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+/* 프로필 아바타 */
+.avatar-circle {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* 평점 스타일 */
+.rating-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.rating-wrapper .bi-star-fill {
+    color: #ffc107;
+}
+
+.rating-wrapper .bi-star {
+    color: #e0e0e0;
+}
+
+/* 배지 스타일 */
+.guide-card .badge {
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+    border-radius: 20px;
+}
+
+.badge.bg-info {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+    color: var(--text-inverse) !important;
+    box-shadow: var(--shadow-light);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* 소개 텍스트 */
+.intro-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex-grow: 1;
+    min-height: 60px;
+}
+
+/* 버튼 스타일 */
+.guide-card .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.guide-card .btn-outline-secondary {
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.guide-card .btn-outline-secondary:hover {
+    background: var(--accent-secondary);
+    border-color: var(--accent-secondary);
+    color: var(--text-inverse);
+    transform: translateY(-2px);
+}
+
+/* 빈 상태 */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--bg-card);
+    border-radius: 20px;
+    margin: 2rem 0;
+}
+
+.empty-state i {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.empty-state h4 {
+    color: var(--text-primary);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+/* 모달 스타일 */
+.modal-content {
+    border-radius: 20px;
+    border: none;
+    overflow: hidden;
+}
+
+.modal-header.bg-primary {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 120px 0 40px 0;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+    }
+
+    .travel-section {
+        padding: 2rem 0;
+    }
+
+    .container {
+        padding: 0 15px;
+    }
+
+    .search-card {
+        padding: 1.2rem 1rem;
+    }
+
+    .guide-card .card-body {
+        padding: 1.25rem;
+    }
+}
+
+/* 추가 애니메이션 효과 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.guide-card {
+    animation: fadeInUp 0.6s ease;
+}
+
+.guide-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.guide-card:nth-child(3) {
+    animation-delay: 0.2s;
+}

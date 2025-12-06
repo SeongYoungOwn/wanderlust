@@ -1,0 +1,286 @@
+/* UI Utilities CSS for Tour Project */
+
+/* Layout Utilities */
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-fixed { position: fixed !important; }
+.position-sticky { position: sticky !important; }
+
+/* Spacing Utilities */
+.m-auto { margin: auto !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+.my-auto { margin-top: auto !important; margin-bottom: auto !important; }
+
+/* Display Utilities */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+.d-inline-flex { display: inline-flex !important; }
+.d-grid { display: grid !important; }
+
+/* Flex Utilities */
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+.flex-wrap { flex-wrap: wrap !important; }
+.flex-nowrap { flex-wrap: nowrap !important; }
+.justify-content-start { justify-content: flex-start !important; }
+.justify-content-end { justify-content: flex-end !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-around { justify-content: space-around !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+.align-items-center { align-items: center !important; }
+.align-items-stretch { align-items: stretch !important; }
+.flex-grow-1 { flex-grow: 1 !important; }
+.flex-shrink-0 { flex-shrink: 0 !important; }
+
+/* Text Utilities */
+.text-left { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+.text-justify { text-align: justify !important; }
+.text-nowrap { white-space: nowrap !important; }
+.text-truncate { 
+    overflow: hidden !important; 
+    text-overflow: ellipsis !important; 
+    white-space: nowrap !important; 
+}
+
+/* Font Weight */
+.fw-light { font-weight: 300 !important; }
+.fw-normal { font-weight: 400 !important; }
+.fw-medium { font-weight: 500 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-bold { font-weight: 700 !important; }
+
+/* Font Size */
+.fs-1 { font-size: 2.5rem !important; }
+.fs-2 { font-size: 2rem !important; }
+.fs-3 { font-size: 1.75rem !important; }
+.fs-4 { font-size: 1.5rem !important; }
+.fs-5 { font-size: 1.25rem !important; }
+.fs-6 { font-size: 1rem !important; }
+.fs-small { font-size: 0.875rem !important; }
+.fs-xs { font-size: 0.75rem !important; }
+
+/* Colors */
+.text-primary { color: #667eea !important; }
+.text-secondary { color: #764ba2 !important; }
+.text-success { color: #22c55e !important; }
+.text-danger { color: #ef4444 !important; }
+.text-warning { color: #f59e0b !important; }
+.text-info { color: #3b82f6 !important; }
+.text-light { color: #f8f9fa !important; }
+.text-dark { color: #1f2937 !important; }
+.text-muted { color: #6b7280 !important; }
+
+/* Background Colors */
+.bg-primary { background-color: #667eea !important; }
+.bg-secondary { background-color: #764ba2 !important; }
+.bg-success { background-color: #22c55e !important; }
+.bg-danger { background-color: #ef4444 !important; }
+.bg-warning { background-color: #f59e0b !important; }
+.bg-info { background-color: #3b82f6 !important; }
+.bg-light { background-color: #f8f9fa !important; }
+.bg-dark { background-color: #1f2937 !important; }
+.bg-white { background-color: #ffffff !important; }
+.bg-transparent { background-color: transparent !important; }
+
+/* Gradient Backgrounds */
+.bg-gradient-primary { 
+    background: linear-gradient(135deg, #667eea, #764ba2) !important; 
+}
+.bg-gradient-success { 
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important; 
+}
+.bg-gradient-danger { 
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important; 
+}
+.bg-gradient-warning { 
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important; 
+}
+.bg-gradient-info { 
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important; 
+}
+
+/* Border Utilities */
+.border { border: 1px solid #e5e7eb !important; }
+.border-0 { border: 0 !important; }
+.border-top { border-top: 1px solid #e5e7eb !important; }
+.border-right { border-right: 1px solid #e5e7eb !important; }
+.border-bottom { border-bottom: 1px solid #e5e7eb !important; }
+.border-left { border-left: 1px solid #e5e7eb !important; }
+
+/* Border Radius */
+.rounded { border-radius: 0.375rem !important; }
+.rounded-sm { border-radius: 0.25rem !important; }
+.rounded-lg { border-radius: 0.5rem !important; }
+.rounded-xl { border-radius: 0.75rem !important; }
+.rounded-2xl { border-radius: 1rem !important; }
+.rounded-3xl { border-radius: 1.5rem !important; }
+.rounded-full { border-radius: 9999px !important; }
+.rounded-0 { border-radius: 0 !important; }
+
+/* Shadow Utilities */
+.shadow-none { box-shadow: none !important; }
+.shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important; }
+.shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important; }
+.shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important; }
+.shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; }
+.shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important; }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important; }
+
+/* Interactive Utilities */
+.cursor-pointer { cursor: pointer !important; }
+.cursor-not-allowed { cursor: not-allowed !important; }
+.cursor-wait { cursor: wait !important; }
+.cursor-help { cursor: help !important; }
+
+/* Transition Utilities */
+.transition-all { 
+    transition-property: all !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+}
+.transition-colors { 
+    transition-property: color, background-color, border-color !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+}
+.transition-opacity { 
+    transition-property: opacity !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+}
+.transition-transform { 
+    transition-property: transform !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+}
+
+/* Transform Utilities */
+.transform { transform: translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) !important; }
+.scale-90 { transform: scale(0.9) !important; }
+.scale-95 { transform: scale(0.95) !important; }
+.scale-100 { transform: scale(1) !important; }
+.scale-105 { transform: scale(1.05) !important; }
+.scale-110 { transform: scale(1.1) !important; }
+
+/* Hover Effects */
+.hover-shadow:hover { 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    transition: box-shadow 0.3s ease !important;
+}
+.hover-scale:hover { 
+    transform: scale(1.05) !important; 
+    transition: transform 0.3s ease !important;
+}
+.hover-lift:hover { 
+    transform: translateY(-4px) !important; 
+    transition: transform 0.3s ease !important;
+}
+
+/* Animation Utilities */
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite !important;
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite !important;
+}
+
+.animate-ping {
+    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite !important;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+
+@keyframes bounce {
+    0%, 100% { 
+        transform: translateY(-25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% { 
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+    75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+/* Responsive Utilities */
+@media (max-width: 640px) {
+    .sm-hidden { display: none !important; }
+    .sm-block { display: block !important; }
+    .sm-flex { display: flex !important; }
+    .sm-text-center { text-align: center !important; }
+    .sm-text-left { text-align: left !important; }
+}
+
+@media (max-width: 768px) {
+    .md-hidden { display: none !important; }
+    .md-block { display: block !important; }
+    .md-flex { display: flex !important; }
+    .md-text-center { text-align: center !important; }
+    .md-text-left { text-align: left !important; }
+    .md-flex-column { flex-direction: column !important; }
+}
+
+@media (max-width: 1024px) {
+    .lg-hidden { display: none !important; }
+    .lg-block { display: block !important; }
+    .lg-flex { display: flex !important; }
+}
+
+/* Accessibility Utilities */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.focus-visible:focus-visible {
+    outline: 2px solid #667eea !important;
+    outline-offset: 2px !important;
+}
+
+/* Print Utilities */
+@media print {
+    .print-hidden { display: none !important; }
+    .print-block { display: block !important; }
+    .print-inline { display: inline !important; }
+    .print-inline-block { display: inline-block !important; }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .dark-mode .text-dark { color: #f8f9fa !important; }
+    .dark-mode .text-light { color: #1f2937 !important; }
+    .dark-mode .bg-light { background-color: #1f2937 !important; }
+    .dark-mode .bg-dark { background-color: #f8f9fa !important; }
+    .dark-mode .border { border-color: #4b5563 !important; }
+}

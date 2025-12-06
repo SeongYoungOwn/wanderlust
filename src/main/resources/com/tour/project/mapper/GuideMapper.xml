@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.GuideDAO">
+
+    <!-- 가이드 신청 등록 -->
+    <insert id="insertGuideApplication" parameterType="com.tour.project.vo.GuideApplicationVO">
+        INSERT INTO guide_applications (
+            user_id, region, address, phone,
+            specialty_region, specialty_theme, specialty_area,
+            introduction, greeting_message, status
+        ) VALUES (
+            #{userId}, #{region}, #{address}, #{phone},
+            #{specialtyRegion}, #{specialtyTheme}, #{specialtyArea},
+            #{introduction}, #{greetingMessage}, 'pending'
+        )
+    </insert>
+
+    <!-- 사용자의 가이드 신청 상태 확인 -->
+    <select id="getApplicationByUserId" parameterType="String" resultType="com.tour.project.vo.GuideApplicationVO">
+        SELECT
+            application_id as applicationId,
+            user_id as userId,
+            region,
+            address,
+            phone,
+            specialty_region as specialtyRegion,
+            specialty_theme as specialtyTheme,
+            specialty_area as specialtyArea,
+            introduction,
+            greeting_message as greetingMessage,
+            status,
+            admin_comment as adminComment,
+            applied_date as appliedDate,
+            reviewed_date as reviewedDate,
+            reviewed_by as reviewedBy
+        FROM guide_applications
+        WHERE user_id = #{userId}
+        ORDER BY applied_date DESC
+        LIMIT 1
+    </select>
+
+    <!-- 대기 중인 가이드 신청 목록 조회 (관리자용) -->
+    <select id="getPendingApplications" resultType="com.tour.project.vo.GuideApplicationVO">
+        SELECT
+            ga.application_id as applicationId,
+            ga.user_id as userId,
+            ga.region,
+            ga.address,
+            ga.phone,
+            ga.specialty_region as specialtyRegion,
+            ga.specialty_theme as specialtyTheme,
+            ga.specialty_area as specialtyArea,
+            ga.introduction,
+            ga.greeting_message as greetingMessage,
+            ga.status,
+            ga.admin_comment as adminComment,
+            ga.applied_date as appliedDate,
+            ga.reviewed_date as reviewedDate,
+            ga.reviewed_by as reviewedBy,
+            m.user_name as userName,
+            m.user_email as userEmail
+        FROM guide_applications ga
+        JOIN member m ON ga.user_id = m.user_id
+        WHERE ga.status = 'pending'
+        ORDER BY ga.applied_date DESC
+    </select>
+
+    <!-- 가이드 신청 ID로 조회 -->
+    <select id="getApplicationById" parameterType="int" resultType="com.tour.project.vo.GuideApplicationVO">
+        SELECT
+            application_id as applicationId,
+            user_id as userId,
+            region,
+            address,
+            phone,
+            specialty_region as specialtyRegion,
+            specialty_theme as specialtyTheme,
+            specialty_area as specialtyArea,
+            introduction,
+            greeting_message as greetingMessage,
+            status,
+            admin_comment as adminComment,
+            applied_date as appliedDate,
+            reviewed_date as reviewedDate,
+            reviewed_by as reviewedBy
+        FROM guide_applications
+        WHERE application_id = #{applicationId}
+    </select>
+
+    <!-- 가이드로 등록 (실제 테이블 구조에 맞게 수정) -->
+    <insert id="insertGuide" parameterType="com.tour.project.vo.GuideApplicationVO">
+        INSERT INTO guides (
+            user_id, member_id, region, address, phone,
+            specialty_region, specialty_theme, specialty_area,
+            introduction, status, guide_status
+        )
+        SELECT
+            #{userId}, #{userId}, #{region}, #{address}, #{phone},
+            #{specialtyRegion}, #{specialtyTheme}, #{specialtyArea},
+            #{introduction}, 'ACTIVE', 'ACTIVE'
+        WHERE NOT EXISTS (
+            SELECT 1 FROM guides WHERE user_id = #{userId} OR member_id = #{userId}
+        )
+    </insert>
+
+    <!-- 가이드 신청 상태 업데이트 -->
+    <update id="updateApplicationStatus">
+        UPDATE guide_applications
+        SET
+            status = #{status},
+            reviewed_date = CURRENT_TIMESTAMP,
+            reviewed_by = #{adminId},
+            admin_comment = #{adminComment}
+        WHERE application_id = #{applicationId}
+    </update>
+
+    <!-- 가이드 신청 거절 -->
+    <update id="rejectApplication">
+        UPDATE guide_applications
+        SET
+            status = 'rejected',
+            reviewed_date = CURRENT_TIMESTAMP,
+            reviewed_by = #{adminId},
+            admin_comment = #{adminComment}
+        WHERE application_id = #{applicationId}
+    </update>
+
+    <!-- 가이드 목록 조회 (신청 정보와 조인) -->
+    <select id="getGuideList" resultType="com.tour.project.vo.GuideVO">
+        SELECT
+            g.guide_id as guideId,
+            g.member_id as userId,
+            g.rating,
+            COALESCE((SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = g.member_id), 0) as reviewCount,
+            g.guide_status as status,
+            g.created_at as createdDate,
+            g.updated_at as updatedDate,
+            m.user_name as userName,
+            m.user_email as userEmail,
+            COALESCE(ga.region, '정보 없음') as region,
+            COALESCE(ga.address, '정보 없음') as address,
+            COALESCE(ga.phone, '정보 없음') as phone,
+            COALESCE(ga.specialty_region, '정보 없음') as specialtyRegion,
+            COALESCE(ga.specialty_theme, '정보 없음') as specialtyTheme,
+            COALESCE(ga.specialty_area, '정보 없음') as specialtyArea,
+            COALESCE(ga.introduction, '소개 내용이 없습니다.') as introduction
+        FROM guides g
+        JOIN member m ON g.member_id = m.user_id
+        LEFT JOIN guide_applications ga ON g.member_id = ga.user_id
+            AND ga.application_id = (
+                SELECT MAX(application_id)
+                FROM guide_applications
+                WHERE user_id = g.member_id
+            )
+        WHERE g.guide_status = 'ACTIVE'
+        <if test="region != null and region != ''">
+            AND (ga.region LIKE CONCAT('%', #{region}, '%') OR ga.region IS NULL)
+        </if>
+        <if test="theme != null and theme != ''">
+            AND (ga.specialty_theme LIKE CONCAT('%', #{theme}, '%') OR ga.specialty_theme IS NULL)
+        </if>
+        <if test="minRating != null">
+            AND g.rating >= #{minRating}
+        </if>
+        ORDER BY g.rating DESC, reviewCount DESC
+    </select>
+
+    <!-- 가이드 상세 정보 조회 (신청 정보와 조인) -->
+    <select id="getGuideById" parameterType="int" resultType="com.tour.project.vo.GuideVO">
+        SELECT
+            g.guide_id as guideId,
+            g.member_id as userId,
+            g.rating,
+            COALESCE((SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = g.member_id), 0) as reviewCount,
+            g.guide_status as status,
+            g.created_at as createdDate,
+            g.updated_at as updatedDate,
+            m.user_name as userName,
+            m.user_email as userEmail,
+            COALESCE(ga.region, '정보 없음') as region,
+            COALESCE(ga.address, '정보 없음') as address,
+            COALESCE(ga.phone, '정보 없음') as phone,
+            COALESCE(ga.specialty_region, '정보 없음') as specialtyRegion,
+            COALESCE(ga.specialty_theme, '정보 없음') as specialtyTheme,
+            COALESCE(ga.specialty_area, '정보 없음') as specialtyArea,
+            COALESCE(ga.introduction, '소개 내용이 없습니다.') as introduction
+        FROM guides g
+        JOIN member m ON g.member_id = m.user_id
+        LEFT JOIN guide_applications ga ON g.member_id = ga.user_id
+            AND ga.application_id = (
+                SELECT MAX(application_id)
+                FROM guide_applications
+                WHERE user_id = g.member_id
+            )
+        WHERE g.guide_id = #{guideId}
+    </select>
+
+    <!-- 사용자 ID로 가이드 정보 조회 (신청 정보와 조인) -->
+    <select id="getGuideByUserId" parameterType="string" resultType="com.tour.project.vo.GuideVO">
+        SELECT
+            g.guide_id as guideId,
+            g.member_id as userId,
+            g.rating,
+            COALESCE((SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = g.member_id), 0) as reviewCount,
+            g.guide_status as status,
+            g.created_at as createdDate,
+            g.updated_at as updatedDate,
+            m.user_name as userName,
+            m.user_email as userEmail,
+            COALESCE(ga.region, '정보 없음') as region,
+            COALESCE(ga.address, '정보 없음') as address,
+            COALESCE(ga.phone, '정보 없음') as phone,
+            COALESCE(ga.specialty_region, '정보 없음') as specialtyRegion,
+            COALESCE(ga.specialty_theme, '정보 없음') as specialtyTheme,
+            COALESCE(ga.specialty_area, '정보 없음') as specialtyArea,
+            COALESCE(ga.introduction, '소개 내용이 없습니다.') as introduction
+        FROM guides g
+        JOIN member m ON g.member_id = m.user_id
+        LEFT JOIN guide_applications ga ON g.member_id = ga.user_id
+            AND ga.application_id = (
+                SELECT MAX(application_id)
+                FROM guide_applications
+                WHERE user_id = g.member_id
+            )
+        WHERE g.member_id = #{userId}
+        AND g.guide_status = 'ACTIVE'
+    </select>
+
+    <!-- 승인된 가이드 수 조회 -->
+    <select id="getApprovedGuideCount" resultType="int">
+        SELECT COUNT(*) FROM guides WHERE guide_status = 'ACTIVE'
+    </select>
+
+    <!-- 이번 달 신청 수 조회 -->
+    <select id="getMonthlyApplicationCount" resultType="int">
+        SELECT COUNT(*)
+        FROM guide_applications
+        WHERE YEAR(applied_date) = YEAR(CURRENT_DATE)
+        AND MONTH(applied_date) = MONTH(CURRENT_DATE)
+    </select>
+
+    <!-- 전체 신청 수 조회 -->
+    <select id="getTotalApplicationCount" resultType="int">
+        SELECT COUNT(*) FROM guide_applications
+    </select>
+
+    <!-- 승인된 신청 수 조회 -->
+    <select id="getApprovedApplicationCount" resultType="int">
+        SELECT COUNT(*) FROM guide_applications WHERE status = 'approved'
+    </select>
+
+    <!-- 모든 가이드 신청 조회 (페이징, 상태 필터) -->
+    <select id="getAllApplications" resultType="com.tour.project.vo.GuideApplicationVO">
+        SELECT
+            ga.application_id as applicationId,
+            ga.user_id as userId,
+            ga.region,
+            ga.address,
+            ga.phone,
+            ga.specialty_region as specialtyRegion,
+            ga.specialty_theme as specialtyTheme,
+            ga.specialty_area as specialtyArea,
+            ga.introduction,
+            ga.greeting_message as greetingMessage,
+            ga.status,
+            ga.admin_comment as adminComment,
+            ga.applied_date as appliedDate,
+            ga.reviewed_date as reviewedDate,
+            ga.reviewed_by as reviewedBy,
+            m.user_name as userName,
+            m.user_email as userEmail
+        FROM guide_applications ga
+        JOIN member m ON ga.user_id = m.user_id
+        <if test="status != null and status != ''">
+            WHERE ga.status = #{status}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'applied_date'">ga.applied_date</when>
+            <when test="orderBy == 'reviewed_date'">ga.reviewed_date</when>
+            <when test="orderBy == 'status'">ga.status</when>
+            <when test="orderBy == 'user_name'">m.user_name</when>
+            <otherwise>ga.applied_date</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'ASC'">ASC</when>
+            <otherwise>DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 가이드 신청 검색 (페이징, 상태 필터) -->
+    <select id="searchApplications" resultType="com.tour.project.vo.GuideApplicationVO">
+        SELECT
+            ga.application_id as applicationId,
+            ga.user_id as userId,
+            ga.region,
+            ga.address,
+            ga.phone,
+            ga.specialty_region as specialtyRegion,
+            ga.specialty_theme as specialtyTheme,
+            ga.specialty_area as specialtyArea,
+            ga.introduction,
+            ga.greeting_message as greetingMessage,
+            ga.status,
+            ga.admin_comment as adminComment,
+            ga.applied_date as appliedDate,
+            ga.reviewed_date as reviewedDate,
+            ga.reviewed_by as reviewedBy,
+            m.user_name as userName,
+            m.user_email as userEmail
+        FROM guide_applications ga
+        JOIN member m ON ga.user_id = m.user_id
+        WHERE (
+            ga.user_id LIKE CONCAT('%', #{search}, '%') OR
+            m.user_name LIKE CONCAT('%', #{search}, '%') OR
+            ga.region LIKE CONCAT('%', #{search}, '%') OR
+            ga.specialty_region LIKE CONCAT('%', #{search}, '%') OR
+            ga.specialty_theme LIKE CONCAT('%', #{search}, '%')
+        )
+        <if test="status != null and status != ''">
+            AND ga.status = #{status}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="orderBy == 'applied_date'">ga.applied_date</when>
+            <when test="orderBy == 'reviewed_date'">ga.reviewed_date</when>
+            <when test="orderBy == 'status'">ga.status</when>
+            <when test="orderBy == 'user_name'">m.user_name</when>
+            <otherwise>ga.applied_date</otherwise>
+        </choose>
+        <choose>
+            <when test="orderDirection == 'ASC'">ASC</when>
+            <otherwise>DESC</otherwise>
+        </choose>
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 상태별 신청 수 조회 -->
+    <select id="getTotalApplicationCountByStatus" resultType="int">
+        SELECT COUNT(*) FROM guide_applications
+        <if test="status != null and status != ''">
+            WHERE status = #{status}
+        </if>
+    </select>
+
+    <!-- 검색 결과 신청 수 조회 -->
+    <select id="getSearchApplicationCount" resultType="int">
+        SELECT COUNT(*)
+        FROM guide_applications ga
+        JOIN member m ON ga.user_id = m.user_id
+        WHERE (
+            ga.user_id LIKE CONCAT('%', #{search}, '%') OR
+            m.user_name LIKE CONCAT('%', #{search}, '%') OR
+            ga.region LIKE CONCAT('%', #{search}, '%') OR
+            ga.specialty_region LIKE CONCAT('%', #{search}, '%') OR
+            ga.specialty_theme LIKE CONCAT('%', #{search}, '%')
+        )
+        <if test="status != null and status != ''">
+            AND ga.status = #{status}
+        </if>
+    </select>
+
+    <!-- 특정 상태의 신청 수 조회 -->
+    <select id="getApplicationCountByStatus" resultType="int">
+        SELECT COUNT(*) FROM guide_applications WHERE status = #{status}
+    </select>
+
+    <!-- 가이드 삭제 -->
+    <delete id="deleteGuide" parameterType="int">
+        DELETE FROM guides WHERE guide_id = #{guideId}
+    </delete>
+
+</mapper>

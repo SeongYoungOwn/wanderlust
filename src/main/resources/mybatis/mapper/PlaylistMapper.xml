@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tour.project.dao.PlaylistDAO">
+    
+    <!-- 플레이리스트 기본 정보 저장 및 ID 반환 -->
+    <insert id="insertPlaylist" useGeneratedKeys="true" keyColumn="playlist_id" keyProperty="request.playlistId">
+        INSERT INTO user_playlist (
+            user_id, 
+            music_origin, 
+            destination_type, 
+            music_genre, 
+            time_of_day, 
+            travel_style,
+            created_at
+        ) VALUES (
+            #{userId}, 
+            #{request.musicOrigin}, 
+            #{request.destinationType}, 
+            #{request.musicGenre}, 
+            #{request.timeOfDay}, 
+            #{request.travelStyle},
+            NOW()
+        )
+    </insert>
+    
+    <!-- 플레이리스트 음악 저장 -->
+    <insert id="insertPlaylistSong">
+        INSERT INTO playlist_songs (
+            playlist_id, 
+            song_title, 
+            artist, 
+            genre, 
+            reason, 
+            song_order,
+            created_at
+        ) VALUES (
+            #{playlistId}, 
+            #{song.songTitle}, 
+            #{song.artist}, 
+            #{song.genre}, 
+            #{song.reason}, 
+            #{order},
+            NOW()
+        )
+    </insert>
+    
+    <!-- 사용자의 플레이리스트 개수 조회 -->
+    <select id="getPlaylistCountByUser" resultType="int">
+        SELECT COUNT(*) 
+        FROM user_playlist 
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 사용자의 저장된 플레이리스트 목록 조회 -->
+    <select id="getUserPlaylists" resultType="com.tour.project.dto.playlist.SavedPlaylistDTO">
+        SELECT 
+            playlist_id as playlistId,
+            user_id as userId,
+            music_origin as musicOrigin,
+            destination_type as destinationType,
+            music_genre as musicGenre,
+            time_of_day as timeOfDay,
+            travel_style as travelStyle,
+            created_at as createdAt
+        FROM user_playlist 
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+    
+    <!-- 플레이리스트의 음악 목록 조회 -->
+    <select id="getPlaylistSongs" resultType="com.tour.project.dto.playlist.SavedPlaylistDTO$SavedSongDTO">
+        SELECT 
+            song_id as songId,
+            playlist_id as playlistId,
+            song_title as songTitle,
+            artist,
+            genre,
+            reason,
+            song_order as songOrder,
+            created_at as createdAt
+        FROM playlist_songs 
+        WHERE playlist_id = #{playlistId}
+        ORDER BY song_order ASC
+    </select>
+    
+</mapper>

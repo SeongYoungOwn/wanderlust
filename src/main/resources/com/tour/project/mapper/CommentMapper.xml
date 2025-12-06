@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.CommentDAO">
+
+    <insert id="insertComment" parameterType="com.tour.project.dto.CommentDTO">
+        INSERT INTO comments (board_id, comment_content, comment_writer, comment_regdate)
+        VALUES (#{boardId}, #{commentContent}, #{commentWriter}, #{commentRegdate})
+    </insert>
+
+    <select id="getComment" parameterType="int" resultType="com.tour.project.dto.CommentDTO">
+        SELECT comment_id as commentId, board_id as boardId, comment_content as commentContent,
+               comment_writer as commentWriter, comment_regdate as commentRegdate
+        FROM comments
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <update id="updateComment" parameterType="com.tour.project.dto.CommentDTO">
+        UPDATE comments
+        SET comment_content = #{commentContent}
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <delete id="deleteComment" parameterType="int">
+        DELETE FROM comments WHERE comment_id = #{commentId}
+    </delete>
+
+    <select id="getCommentsByBoardId" parameterType="int" resultType="com.tour.project.dto.CommentDTO">
+        SELECT comment_id as commentId, board_id as boardId, comment_content as commentContent,
+               comment_writer as commentWriter, comment_regdate as commentRegdate
+        FROM comments
+        WHERE board_id = #{boardId}
+        ORDER BY comment_regdate ASC
+    </select>
+
+    <select id="getCommentCountByBoardId" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM comments WHERE board_id = #{boardId}
+    </select>
+
+    <select id="getCommentsByWriter" parameterType="String" resultType="com.tour.project.dto.CommentDTO">
+        SELECT comment_id as commentId, board_id as boardId, comment_content as commentContent,
+               comment_writer as commentWriter, comment_regdate as commentRegdate
+        FROM comments
+        WHERE comment_writer = #{commentWriter}
+        ORDER BY comment_regdate DESC
+    </select>
+
+    <!-- 사용자의 댓글 총 개수 -->
+    <select id="countUserComments" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE comment_writer = #{userId}
+    </select>
+    
+    <!-- 매칭 시스템용 사용자 댓글 수 조회 -->
+    <select id="getUserCommentCount" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM COMMENTS
+        WHERE comment_writer = #{userId}
+    </select>
+
+</mapper>

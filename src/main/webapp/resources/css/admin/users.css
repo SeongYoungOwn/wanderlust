@@ -1,0 +1,283 @@
+/* ==========================================================================
+   Admin Users Management Specific Styles
+   ========================================================================== */
+
+/* ==========================================================================
+   Users Table
+   ========================================================================== */
+
+.users-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.users-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.users-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* ==========================================================================
+   User Information Display
+   ========================================================================== */
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    margin-right: 0.75rem;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.user-id {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+/* ==========================================================================
+   Manner Score Display
+   ========================================================================== */
+
+.manner-score {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+.manner-good {
+    color: #059669;
+}
+
+.manner-normal {
+    color: #d97706;
+}
+
+.manner-bad {
+    color: #dc2626;
+}
+
+/* ==========================================================================
+   Action Buttons
+   ========================================================================== */
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ==========================================================================
+   Search and Filters
+   ========================================================================== */
+
+.controls-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+}
+
+.search-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* ==========================================================================
+   Status Badges
+   ========================================================================== */
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-suspended {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.badge-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-secondary {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Manner Score Styles */
+.manner-score {
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+}
+
+.manner-good {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.manner-normal {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.manner-bad {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ==========================================================================
+   Pagination
+   ========================================================================== */
+
+.pagination-section {
+    padding: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 0.875rem;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.page-link {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.page-link:hover {
+    background: #f3f4f6;
+    text-decoration: none;
+}
+
+.page-link.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+.page-link.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .form-group {
+        min-width: unset;
+    }
+
+    .pagination-section {
+        flex-direction: column;
+        text-align: center;
+    }
+}

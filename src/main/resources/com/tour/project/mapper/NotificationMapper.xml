@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.NotificationDAO">
+
+    <insert id="insertNotification" parameterType="com.tour.project.dto.NotificationDTO" useGeneratedKeys="true" keyProperty="notificationId">
+        INSERT INTO notifications (user_id, type, title, message, related_id, is_read, created_date)
+        VALUES (#{userId}, #{type}, #{title}, #{message}, #{relatedId}, #{isRead}, NOW())
+    </insert>
+
+    <select id="getNotificationById" parameterType="int" resultType="com.tour.project.dto.NotificationDTO">
+        SELECT 
+            n.notification_id as notificationId,
+            n.user_id as userId,
+            n.type as type,
+            n.title as title,
+            n.message as message,
+            n.related_id as relatedId,
+            n.is_read as isRead,
+            n.created_date as createdDate,
+            tp.plan_title as travelPlanTitle,
+            m1.user_name as requesterName,
+            m2.user_name as planWriterName
+        FROM notifications n
+        LEFT JOIN travel_plan tp ON n.related_id = tp.plan_id AND n.type IN ('JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED')
+        LEFT JOIN travel_join_requests tjr ON n.related_id = tjr.request_id
+        LEFT JOIN member m1 ON tjr.requester_id = m1.user_id
+        LEFT JOIN member m2 ON tp.plan_writer = m2.user_id
+        WHERE n.notification_id = #{notificationId}
+    </select>
+
+    <select id="getNotificationsByUserId" parameterType="string" resultType="com.tour.project.dto.NotificationDTO">
+        SELECT 
+            n.notification_id as notificationId,
+            n.user_id as userId,
+            n.type as type,
+            n.title as title,
+            n.message as message,
+            n.related_id as relatedId,
+            n.is_read as isRead,
+            n.created_date as createdDate,
+            tp.plan_title as travelPlanTitle,
+            m1.user_name as requesterName,
+            m2.user_name as planWriterName
+        FROM notifications n
+        LEFT JOIN travel_plan tp ON n.related_id = tp.plan_id AND n.type IN ('JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED')
+        LEFT JOIN travel_join_requests tjr ON n.related_id = tjr.request_id
+        LEFT JOIN member m1 ON tjr.requester_id = m1.user_id
+        LEFT JOIN member m2 ON tp.plan_writer = m2.user_id
+        WHERE n.user_id = #{userId}
+        ORDER BY n.created_date DESC
+    </select>
+
+    <select id="getUnreadNotificationsByUserId" parameterType="string" resultType="com.tour.project.dto.NotificationDTO">
+        SELECT 
+            n.notification_id as notificationId,
+            n.user_id as userId,
+            n.type as type,
+            n.title as title,
+            n.message as message,
+            n.related_id as relatedId,
+            n.is_read as isRead,
+            n.created_date as createdDate,
+            tp.plan_title as travelPlanTitle,
+            m1.user_name as requesterName,
+            m2.user_name as planWriterName
+        FROM notifications n
+        LEFT JOIN travel_plan tp ON n.related_id = tp.plan_id AND n.type IN ('JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED')
+        LEFT JOIN travel_join_requests tjr ON n.related_id = tjr.request_id
+        LEFT JOIN member m1 ON tjr.requester_id = m1.user_id
+        LEFT JOIN member m2 ON tp.plan_writer = m2.user_id
+        WHERE n.user_id = #{userId} 
+        AND n.is_read = FALSE
+        ORDER BY n.created_date DESC
+    </select>
+
+    <select id="getNotificationsByType" resultType="com.tour.project.dto.NotificationDTO">
+        SELECT 
+            n.notification_id as notificationId,
+            n.user_id as userId,
+            n.type as type,
+            n.title as title,
+            n.message as message,
+            n.related_id as relatedId,
+            n.is_read as isRead,
+            n.created_date as createdDate,
+            tp.plan_title as travelPlanTitle,
+            m1.user_name as requesterName,
+            m2.user_name as planWriterName
+        FROM notifications n
+        LEFT JOIN travel_plan tp ON n.related_id = tp.plan_id AND n.type IN ('JOIN_REQUEST', 'JOIN_APPROVED', 'JOIN_REJECTED')
+        LEFT JOIN travel_join_requests tjr ON n.related_id = tjr.request_id
+        LEFT JOIN member m1 ON tjr.requester_id = m1.user_id
+        LEFT JOIN member m2 ON tp.plan_writer = m2.user_id
+        WHERE n.user_id = #{userId} 
+        AND n.type = #{type}
+        ORDER BY n.created_date DESC
+    </select>
+
+    <update id="updateNotificationAsRead" parameterType="int">
+        UPDATE notifications 
+        SET is_read = TRUE 
+        WHERE notification_id = #{notificationId}
+    </update>
+
+    <update id="updateAllNotificationsAsRead" parameterType="string">
+        UPDATE notifications 
+        SET is_read = TRUE 
+        WHERE user_id = #{userId}
+    </update>
+
+    <delete id="deleteNotification" parameterType="int">
+        DELETE FROM notifications WHERE notification_id = #{notificationId}
+    </delete>
+
+    <delete id="deleteNotificationsByUserId" parameterType="string">
+        DELETE FROM notifications WHERE user_id = #{userId}
+    </delete>
+
+    <select id="getUnreadNotificationCount" parameterType="string" resultType="int">
+        SELECT COUNT(*) 
+        FROM notifications 
+        WHERE user_id = #{userId} 
+        AND is_read = FALSE
+    </select>
+
+    <select id="getNotificationCountByType" resultType="int">
+        SELECT COUNT(*) 
+        FROM notifications 
+        WHERE user_id = #{userId} 
+        AND type = #{type}
+    </select>
+
+</mapper>

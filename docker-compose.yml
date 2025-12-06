@@ -1,0 +1,41 @@
+services:
+  wanderlust-app:
+    image: tomcat:9-jdk17-openjdk-slim
+    container_name: wanderlust-app
+    restart: unless-stopped
+    environment:
+      # Database configuration
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb-11.4.5:3306/wanderlust?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+
+      # Claude API
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+
+      # Timezone
+      TZ: Asia/Seoul
+
+      # Tomcat memory settings
+      CATALINA_OPTS: "-Xms512m -Xmx1024m"
+
+    volumes:
+      # WAR deployment directory (서버에서: /data1/docker/wanderlust/webapps)
+      - ./webapps:/usr/local/tomcat/webapps
+      # File uploads
+      - ./uploads:/app/uploads
+      # Tomcat logs
+      - ./logs:/usr/local/tomcat/logs
+
+    networks:
+      - web
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wanderlust.rule=Host(`wanderlust.ibetter.kr`)"
+      - "traefik.http.routers.wanderlust.entrypoints=websecure"
+      - "traefik.http.routers.wanderlust.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wanderlust.loadbalancer.server.port=8080"
+
+networks:
+  web:
+    external: true

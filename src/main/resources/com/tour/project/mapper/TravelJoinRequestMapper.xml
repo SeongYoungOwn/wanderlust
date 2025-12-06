@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.TravelJoinRequestDAO">
+
+    <insert id="insertJoinRequest" parameterType="com.tour.project.dto.TravelJoinRequestDTO" useGeneratedKeys="true" keyProperty="requestId">
+        INSERT INTO travel_join_requests (travel_plan_id, requester_id, request_message, request_date, status)
+        VALUES (#{travelPlanId}, #{requesterId}, #{requestMessage}, NOW(), 'PENDING')
+    </insert>
+
+    <select id="getJoinRequestById" parameterType="int" resultType="com.tour.project.dto.TravelJoinRequestDTO">
+        SELECT 
+            tjr.request_id as requestId,
+            tjr.travel_plan_id as travelPlanId,
+            tjr.requester_id as requesterId,
+            tjr.request_message as requestMessage,
+            tjr.request_date as requestDate,
+            tjr.status as status,
+            tjr.response_message as responseMessage,
+            tjr.response_date as responseDate,
+            tjr.responded_by as respondedBy,
+            m.user_name as requesterName,
+            m.user_email as requesterEmail,
+            tp.plan_title as travelPlanTitle,
+            tp.plan_destination as travelPlanDestination,
+            tp.plan_start_date as travelPlanStartDate,
+            tp.plan_end_date as travelPlanEndDate,
+            tp.plan_writer as planWriter,
+            pm.user_name as planWriterName
+        FROM travel_join_requests tjr
+        JOIN member m ON tjr.requester_id = m.user_id
+        JOIN travel_plan tp ON tjr.travel_plan_id = tp.plan_id
+        JOIN member pm ON tp.plan_writer = pm.user_id
+        WHERE tjr.request_id = #{requestId}
+    </select>
+
+    <select id="getJoinRequestsByTravelPlan" parameterType="int" resultType="com.tour.project.dto.TravelJoinRequestDTO">
+        SELECT 
+            tjr.request_id as requestId,
+            tjr.travel_plan_id as travelPlanId,
+            tjr.requester_id as requesterId,
+            tjr.request_message as requestMessage,
+            tjr.request_date as requestDate,
+            tjr.status as status,
+            tjr.response_message as responseMessage,
+            tjr.response_date as responseDate,
+            tjr.responded_by as respondedBy,
+            m.user_name as requesterName,
+            m.user_email as requesterEmail,
+            tp.plan_title as travelPlanTitle,
+            tp.plan_destination as travelPlanDestination,
+            tp.plan_start_date as travelPlanStartDate,
+            tp.plan_end_date as travelPlanEndDate,
+            tp.plan_writer as planWriter,
+            pm.user_name as planWriterName,
+            COALESCE(ums.average_manner_score, 36.5) as requesterMannerScore,
+            COALESCE(ums.total_evaluations, 0) as requesterTotalEvaluations,
+            COALESCE(ums.total_likes, 0) as requesterTotalLikes,
+            COALESCE(ums.total_dislikes, 0) as requesterTotalDislikes,
+            COALESCE(ums.completed_travels, 0) as requesterCompletedTravels
+        FROM travel_join_requests tjr
+        JOIN member m ON tjr.requester_id = m.user_id
+        JOIN travel_plan tp ON tjr.travel_plan_id = tp.plan_id
+        JOIN member pm ON tp.plan_writer = pm.user_id
+        LEFT JOIN user_manner_stats ums ON tjr.requester_id = ums.user_id
+        WHERE tjr.travel_plan_id = #{travelPlanId}
+        ORDER BY tjr.request_date DESC
+    </select>
+
+    <select id="getJoinRequestsByRequester" parameterType="string" resultType="com.tour.project.dto.TravelJoinRequestDTO">
+        SELECT 
+            tjr.request_id as requestId,
+            tjr.travel_plan_id as travelPlanId,
+            tjr.requester_id as requesterId,
+            tjr.request_message as requestMessage,
+            tjr.request_date as requestDate,
+            tjr.status as status,
+            tjr.response_message as responseMessage,
+            tjr.response_date as responseDate,
+            tjr.responded_by as respondedBy,
+            m.user_name as requesterName,
+            m.user_email as requesterEmail,
+            tp.plan_title as travelPlanTitle,
+            tp.plan_destination as travelPlanDestination,
+            tp.plan_start_date as travelPlanStartDate,
+            tp.plan_end_date as travelPlanEndDate,
+            tp.plan_writer as planWriter,
+            pm.user_name as planWriterName,
+            tp.plan_status as travelPlanStatus,
+            tp.completed_date as travelPlanCompletedDate
+        FROM travel_join_requests tjr
+        JOIN member m ON tjr.requester_id = m.user_id
+        JOIN travel_plan tp ON tjr.travel_plan_id = tp.plan_id
+        JOIN member pm ON tp.plan_writer = pm.user_id
+        WHERE tjr.requester_id = #{requesterId}
+        ORDER BY tjr.request_date DESC
+    </select>
+
+    <select id="getJoinRequestsByPlanWriter" parameterType="string" resultType="com.tour.project.dto.TravelJoinRequestDTO">
+        SELECT 
+            tjr.request_id as requestId,
+            tjr.travel_plan_id as travelPlanId,
+            tjr.requester_id as requesterId,
+            tjr.request_message as requestMessage,
+            tjr.request_date as requestDate,
+            tjr.status as status,
+            tjr.response_message as responseMessage,
+            tjr.response_date as responseDate,
+            tjr.responded_by as respondedBy,
+            m.user_name as requesterName,
+            m.user_email as requesterEmail,
+            tp.plan_title as travelPlanTitle,
+            tp.plan_destination as travelPlanDestination,
+            tp.plan_start_date as travelPlanStartDate,
+            tp.plan_end_date as travelPlanEndDate,
+            tp.plan_writer as planWriter,
+            pm.user_name as planWriterName,
+            COALESCE(ums.average_manner_score, 36.5) as requesterMannerScore,
+            COALESCE(ums.total_evaluations, 0) as requesterTotalEvaluations,
+            COALESCE(ums.total_likes, 0) as requesterTotalLikes,
+            COALESCE(ums.total_dislikes, 0) as requesterTotalDislikes,
+            COALESCE(ums.completed_travels, 0) as requesterCompletedTravels
+        FROM travel_join_requests tjr
+        JOIN member m ON tjr.requester_id = m.user_id
+        JOIN travel_plan tp ON tjr.travel_plan_id = tp.plan_id
+        JOIN member pm ON tp.plan_writer = pm.user_id
+        LEFT JOIN user_manner_stats ums ON tjr.requester_id = ums.user_id
+        WHERE tp.plan_writer = #{planWriterId}
+        ORDER BY tjr.request_date DESC
+    </select>
+
+    <select id="getJoinRequestsByStatus" parameterType="string" resultType="com.tour.project.dto.TravelJoinRequestDTO">
+        SELECT 
+            tjr.request_id as requestId,
+            tjr.travel_plan_id as travelPlanId,
+            tjr.requester_id as requesterId,
+            tjr.request_message as requestMessage,
+            tjr.request_date as requestDate,
+            tjr.status as status,
+            tjr.response_message as responseMessage,
+            tjr.response_date as responseDate,
+            tjr.responded_by as respondedBy,
+            m.user_name as requesterName,
+            m.user_email as requesterEmail,
+            tp.plan_title as travelPlanTitle,
+            tp.plan_destination as travelPlanDestination,
+            tp.plan_start_date as travelPlanStartDate,
+            tp.plan_end_date as travelPlanEndDate,
+            tp.plan_writer as planWriter,
+            pm.user_name as planWriterName
+        FROM travel_join_requests tjr
+        JOIN member m ON tjr.requester_id = m.user_id
+        JOIN travel_plan tp ON tjr.travel_plan_id = tp.plan_id
+        JOIN member pm ON tp.plan_writer = pm.user_id
+        WHERE tjr.status = #{status}
+        ORDER BY tjr.request_date DESC
+    </select>
+
+    <update id="updateJoinRequestStatus">
+        UPDATE travel_join_requests 
+        SET status = #{status}, 
+            response_message = #{responseMessage}, 
+            response_date = NOW(),
+            responded_by = #{respondedBy}
+        WHERE request_id = #{requestId}
+    </update>
+
+    <delete id="deleteJoinRequest" parameterType="int">
+        DELETE FROM travel_join_requests WHERE request_id = #{requestId}
+    </delete>
+
+    <select id="isAlreadyRequested" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM travel_join_requests
+        WHERE travel_plan_id = #{travelPlanId}
+        AND requester_id = #{requesterId}
+        AND status != 'REJECTED'
+    </select>
+
+    <!-- 거절된 신청 삭제 (재신청을 위해) -->
+    <delete id="deleteRejectedRequest">
+        DELETE FROM travel_join_requests
+        WHERE travel_plan_id = #{travelPlanId}
+        AND requester_id = #{requesterId}
+        AND status = 'REJECTED'
+    </delete>
+
+    <select id="getJoinRequestCount" parameterType="int" resultType="int">
+        SELECT COUNT(*) 
+        FROM travel_join_requests 
+        WHERE travel_plan_id = #{travelPlanId}
+    </select>
+
+    <select id="getPendingRequestCount" parameterType="string" resultType="int">
+        SELECT COUNT(*) 
+        FROM travel_join_requests tjr
+        JOIN travel_plan tp ON tjr.travel_plan_id = tp.plan_id
+        WHERE tp.plan_writer = #{planWriterId} 
+        AND tjr.status = 'PENDING'
+    </select>
+
+    <select id="isApprovedForTravel" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM travel_join_requests 
+        WHERE travel_plan_id = #{travelPlanId} 
+        AND requester_id = #{userId}
+        AND status = 'APPROVED'
+    </select>
+
+</mapper>

@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.BoardDAO">
+
+    <insert id="insertBoard" parameterType="com.tour.project.dto.BoardDTO">
+        INSERT INTO board (board_title, board_category, board_content, board_image, board_writer)
+        VALUES (#{boardTitle}, #{boardCategory}, #{boardContent}, #{boardImage}, #{boardWriter})
+    </insert>
+
+    <select id="getBoard" parameterType="int" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_id = #{boardId}
+    </select>
+    
+    <update id="updateBoard" parameterType="com.tour.project.dto.BoardDTO">
+        UPDATE board 
+        SET board_title = #{boardTitle}, board_category = #{boardCategory}, board_content = #{boardContent}, board_image = #{boardImage}
+        WHERE board_id = #{boardId}
+    </update>
+    
+    <delete id="deleteBoard" parameterType="int">
+        DELETE FROM board WHERE board_id = #{boardId}
+    </delete>
+    
+    <!-- 모든 게시글 목록 조회 (보드 목록용) -->
+    <select id="getAllBoardsSimple" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        ORDER BY board_regdate DESC
+    </select>
+    
+    <select id="getBoardsByCategory" parameterType="String" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_category = #{category}
+        ORDER BY board_regdate DESC
+    </select>
+    
+    <select id="getBoardsByWriter" parameterType="String" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_writer = #{boardWriter}
+        ORDER BY board_regdate DESC
+    </select>
+    
+    <!-- 조회수 증가 -->
+    <update id="increaseViews" parameterType="int">
+        UPDATE board SET board_views = board_views + 1 WHERE board_id = #{boardId}
+    </update>
+    
+    <!-- 좋아요 추가 -->
+    <insert id="addLike">
+        INSERT INTO board_likes (board_id, user_id) VALUES (#{boardId}, #{userId})
+    </insert>
+    
+    <!-- 좋아요 삭제 -->
+    <delete id="removeLike">
+        DELETE FROM board_likes WHERE board_id = #{boardId} AND user_id = #{userId}
+    </delete>
+    
+    <!-- 좋아요 수 업데이트 -->
+    <update id="updateLikeCount" parameterType="int">
+        UPDATE board SET board_likes = (
+            SELECT COUNT(*) FROM board_likes WHERE board_id = #{boardId}
+        ) WHERE board_id = #{boardId}
+    </update>
+    
+    <!-- 사용자 좋아요 여부 확인 -->
+    <select id="isUserLiked" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM board_likes WHERE board_id = #{boardId} AND user_id = #{userId}
+    </select>
+    
+    <!-- 싫어요 추가 -->
+    <insert id="addDislike">
+        INSERT INTO board_dislikes (board_id, user_id) VALUES (#{boardId}, #{userId})
+    </insert>
+    
+    <!-- 싫어요 삭제 -->
+    <delete id="removeDislike">
+        DELETE FROM board_dislikes WHERE board_id = #{boardId} AND user_id = #{userId}
+    </delete>
+    
+    <!-- 싫어요 수 업데이트 -->
+    <update id="updateDislikeCount" parameterType="int">
+        UPDATE board SET board_dislikes = (
+            SELECT COUNT(*) FROM board_dislikes WHERE board_id = #{boardId}
+        ) WHERE board_id = #{boardId}
+    </update>
+    
+    <!-- 사용자 싫어요 여부 확인 -->
+    <select id="isUserDisliked" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM board_dislikes WHERE board_id = #{boardId} AND user_id = #{userId}
+    </select>
+    
+    <!-- 검색 관련 쿼리들 -->
+    <!-- 제목으로 검색 -->
+    <select id="searchBoardsByTitle" parameterType="String" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_title LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY board_regdate DESC
+    </select>
+    
+    <!-- 내용으로 검색 -->
+    <select id="searchBoardsByContent" parameterType="String" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY board_regdate DESC
+    </select>
+    
+    <!-- 작성자로 검색 -->
+    <select id="searchBoardsByWriter" parameterType="String" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_writer LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY board_regdate DESC
+    </select>
+    
+    <!-- 제목 또는 내용으로 검색 -->
+    <select id="searchBoardsByTitleOrContent" parameterType="String" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_title LIKE CONCAT('%', #{keyword}, '%') 
+           OR board_content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY board_regdate DESC
+    </select>
+
+    <!-- 페이징과 함께 게시글 목록 조회 -->
+    <select id="getBoardsWithPaging" parameterType="map" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    board_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'content'">
+                    board_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    board_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (board_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR board_content LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+            <if test="category != null and category != ''">
+                <if test="searchKeyword != null and searchKeyword != ''">
+                    AND
+                </if>
+                board_category = #{category}
+            </if>
+        </where>
+        <choose>
+            <when test="sortType == 'views'">
+                ORDER BY board_views DESC, board_regdate DESC
+            </when>
+            <when test="sortType == 'likes'">
+                ORDER BY board_likes DESC, board_regdate DESC
+            </when>
+            <otherwise>
+                ORDER BY board_regdate DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 모든 게시글 목록 조회 (페이징 없음) -->
+    <select id="getAllBoards" parameterType="map" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter,
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes,
+               (SELECT COUNT(*) FROM comments WHERE comments.board_id = board.board_id) as commentCount
+        FROM board
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    board_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'content'">
+                    board_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    board_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (board_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR board_content LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+            <if test="category != null and category != ''">
+                <if test="searchKeyword != null and searchKeyword != ''">
+                    AND
+                </if>
+                board_category = #{category}
+            </if>
+        </where>
+        <choose>
+            <when test="sortType == 'view'">
+                ORDER BY board_views DESC, board_regdate DESC
+            </when>
+            <when test="sortType == 'like'">
+                ORDER BY board_likes DESC, board_regdate DESC
+            </when>
+            <otherwise>
+                ORDER BY board_regdate DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 전체 게시글 개수 -->
+    <select id="getTotalBoardCount" resultType="int">
+        SELECT COUNT(*) FROM board
+    </select>
+
+    <!-- 검색과 함께 페이징된 게시글 목록 조회 -->
+    <select id="searchBoardsWithPaging" parameterType="map" resultType="com.tour.project.dto.BoardDTO">
+        SELECT board_id as boardId, board_title as boardTitle, board_category as boardCategory,
+               board_content as boardContent, board_image as boardImage, board_writer as boardWriter, 
+               board_regdate as boardRegdate, board_views as boardViews, board_likes as boardLikes,
+               COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    board_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'content'">
+                    board_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    board_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (board_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR board_content LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+            <if test="category != null and category != ''">
+                <if test="searchKeyword != null and searchKeyword != ''">
+                    AND
+                </if>
+                board_category = #{category}
+            </if>
+        </where>
+        ORDER BY board_regdate DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 검색 결과 개수 -->
+    <select id="getSearchBoardCount" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM board
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    board_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'content'">
+                    board_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    board_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (board_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR board_content LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+            <if test="category != null and category != ''">
+                <if test="searchKeyword != null and searchKeyword != ''">
+                    AND
+                </if>
+                board_category = #{category}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 사용자의 게시글 조회 (프로필용) -->
+    <select id="selectUserPosts" parameterType="map" resultType="com.tour.project.dto.BoardDTO">
+        SELECT 
+            board_id as boardId,
+            board_title as boardTitle,
+            board_category as boardCategory,
+            board_content as boardContent,
+            board_image as boardImage,
+            board_writer as boardWriter,
+            board_regdate as boardRegdate,
+            board_views as boardViews,
+            board_likes as boardLikes,
+            COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        WHERE board_writer = #{userId}
+        ORDER BY board_regdate DESC
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+    
+    <!-- 사용자의 게시글 총 개수 -->
+    <select id="countUserPosts" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM board
+        WHERE board_writer = #{userId}
+    </select>
+
+    <!-- 인기 게시글 조회 (조회수 기준) -->
+    <select id="getPopularBoards" parameterType="int" resultType="com.tour.project.dto.BoardDTO">
+        SELECT
+            board_id as boardId,
+            board_title as boardTitle,
+            board_category as boardCategory,
+            board_content as boardContent,
+            board_image as boardImage,
+            board_writer as boardWriter,
+            board_regdate as boardRegdate,
+            board_views as boardViews,
+            board_likes as boardLikes,
+            COALESCE(board_dislikes, 0) as boardDislikes
+        FROM board
+        ORDER BY board_views DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

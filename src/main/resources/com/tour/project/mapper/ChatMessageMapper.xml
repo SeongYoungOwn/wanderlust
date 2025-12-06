@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.ChatMessageDAO">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="chatMessageResultMap" type="com.tour.project.dto.ChatMessageDTO">
+        <id property="messageId" column="message_id"/>
+        <result property="travelPlanId" column="travel_plan_id"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="senderName" column="sender_name"/>
+        <result property="content" column="message_content"/>
+        <result property="type" column="message_type" typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result property="timestamp" column="sent_time"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="originalFilename" column="original_filename"/>
+        <result property="fileType" column="file_type"/>
+        <result property="fileSizeBytes" column="file_size_bytes"/>
+    </resultMap>
+
+    <!-- 채팅 메시지 저장 -->
+    <insert id="insertChatMessage" parameterType="com.tour.project.dto.ChatMessageDTO" useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO chat_messages (travel_plan_id, sender_id, sender_name, message_content, message_type, sent_time, file_name, file_path, file_size, original_filename, file_type, file_size_bytes)
+        VALUES (#{travelPlanId}, #{senderId}, #{senderName}, #{content}, #{type,typeHandler=org.apache.ibatis.type.EnumTypeHandler}, #{timestamp}, #{fileName}, #{filePath}, #{fileSize}, #{originalFilename}, #{fileType}, #{fileSizeBytes})
+    </insert>
+
+    <!-- 특정 여행 계획의 모든 채팅 메시지 조회 -->
+    <select id="getChatMessagesByTravelPlanId" parameterType="int" resultMap="chatMessageResultMap">
+        SELECT 
+            message_id,
+            travel_plan_id,
+            sender_id,
+            sender_name,
+            message_content,
+            message_type,
+            sent_time,
+            file_name,
+            file_path,
+            file_size,
+            original_filename,
+            file_type,
+            file_size_bytes
+        FROM chat_messages
+        WHERE travel_plan_id = #{travelPlanId}
+        ORDER BY sent_time ASC
+    </select>
+
+    <!-- 특정 여행 계획의 최근 채팅 메시지 조회 (제한된 개수) -->
+    <select id="getRecentChatMessages" resultMap="chatMessageResultMap">
+        SELECT 
+            message_id,
+            travel_plan_id,
+            sender_id,
+            sender_name,
+            message_content,
+            message_type,
+            sent_time,
+            file_name,
+            file_path,
+            file_size,
+            original_filename,
+            file_type,
+            file_size_bytes
+        FROM chat_messages
+        WHERE travel_plan_id = #{travelPlanId}
+        ORDER BY sent_time DESC
+        LIMIT #{limit}
+    </select>
+    
+    <!-- 페이징된 채팅 메시지 조회 -->
+    <select id="getChatMessagesWithPaging" parameterType="map" resultMap="chatMessageResultMap">
+        SELECT 
+            message_id,
+            travel_plan_id,
+            sender_id,
+            sender_name,
+            message_content,
+            message_type,
+            sent_time,
+            file_name,
+            file_path,
+            file_size,
+            original_filename,
+            file_type,
+            file_size_bytes
+        FROM chat_messages
+        WHERE travel_plan_id = #{travelPlanId}
+        <if test="lastMessageId != null and lastMessageId > 0">
+            AND message_id &lt; #{lastMessageId}
+        </if>
+        ORDER BY sent_time DESC
+        LIMIT #{pageSize}
+    </select>
+    
+    <!-- 특정 시간 이후의 새로운 메시지 조회 -->
+    <select id="getNewChatMessages" parameterType="map" resultMap="chatMessageResultMap">
+        SELECT 
+            message_id,
+            travel_plan_id,
+            sender_id,
+            sender_name,
+            message_content,
+            message_type,
+            sent_time,
+            file_name,
+            file_path,
+            file_size,
+            original_filename,
+            file_type,
+            file_size_bytes
+        FROM chat_messages
+        WHERE travel_plan_id = #{travelPlanId}
+        AND sent_time > #{lastTimestamp}
+        ORDER BY sent_time ASC
+    </select>
+
+    <!-- 채팅 메시지 삭제 -->
+    <delete id="deleteChatMessagesByTravelPlanId" parameterType="int">
+        DELETE FROM chat_messages WHERE travel_plan_id = #{travelPlanId}
+    </delete>
+
+    <!-- 채팅 메시지 개수 조회 -->
+    <select id="getChatMessageCount" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM chat_messages WHERE travel_plan_id = #{travelPlanId}
+    </select>
+
+    <!-- 히스토리 로딩을 위한 새로운 쿼리들 -->
+    
+    <!-- 채팅방의 최근 메시지 조회 (페이징) - OFFSET 방식, 시간순 정렬 -->
+    <select id="getRecentMessages" parameterType="map" resultMap="chatMessageResultMap">
+        SELECT * FROM (
+            SELECT 
+                message_id,
+                travel_plan_id,
+                sender_id,
+                sender_name,
+                message_content,
+                message_type,
+                sent_time,
+                file_name,
+                file_path,
+                file_size
+            FROM chat_messages
+            WHERE travel_plan_id = #{travelPlanId}
+            ORDER BY sent_time DESC
+            LIMIT #{limit} OFFSET #{offset}
+        ) AS recent_messages
+        ORDER BY sent_time ASC
+    </select>
+    
+    <!-- 채팅방의 전체 메시지 개수 -->
+    <select id="getMessageCount" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM chat_messages WHERE travel_plan_id = #{travelPlanId}
+    </select>
+    
+    <!-- 특정 시간 이후 메시지 조회 (실시간 동기화용) -->
+    <select id="getMessagesAfter" parameterType="map" resultMap="chatMessageResultMap">
+        SELECT 
+            message_id,
+            travel_plan_id,
+            sender_id,
+            sender_name,
+            message_content,
+            message_type,
+            sent_time,
+            file_name,
+            file_path,
+            file_size,
+            original_filename,
+            file_type,
+            file_size_bytes
+        FROM chat_messages
+        WHERE travel_plan_id = #{travelPlanId}
+        AND sent_time > #{afterTime}
+        ORDER BY sent_time ASC
+    </select>
+    
+    <!-- 채팅방의 최근 N개 메시지 조회 (시간순) -->
+    <select id="getLatestMessages" parameterType="map" resultMap="chatMessageResultMap">
+        SELECT * FROM (
+            SELECT 
+                message_id,
+                travel_plan_id,
+                sender_id,
+                sender_name,
+                message_content,
+                message_type,
+                sent_time,
+                file_name,
+                file_path,
+                file_size
+            FROM chat_messages
+            WHERE travel_plan_id = #{travelPlanId}
+            ORDER BY sent_time DESC
+            LIMIT #{limit}
+        ) AS latest_messages
+        ORDER BY sent_time ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.PostDAO">
+
+    <insert id="insertPost" parameterType="com.tour.project.dto.PostDTO">
+        INSERT INTO POSTS (title, content, user_id, category_id)
+        VALUES (#{postTitle}, #{postContent}, #{postWriter}, #{postCategory})
+    </insert>
+
+    <select id="getPost" parameterType="int" resultType="com.tour.project.dto.PostDTO">
+        SELECT post_id as postId, title as postTitle, content as postContent,
+               user_id as postWriter, created_at as postRegdate, view_count as postViews,
+               category_id as postCategory
+        FROM POSTS
+        WHERE post_id = #{postId}
+    </select>
+    
+    <update id="updatePost" parameterType="com.tour.project.dto.PostDTO">
+        UPDATE POSTS 
+        SET title = #{postTitle}, content = #{postContent}, category_id = #{postCategory}
+        WHERE post_id = #{postId}
+    </update>
+    
+    <delete id="deletePost" parameterType="int">
+        DELETE FROM POSTS WHERE post_id = #{postId}
+    </delete>
+    
+    <select id="getAllPosts" resultType="com.tour.project.dto.PostDTO">
+        SELECT post_id as postId, title as postTitle, content as postContent,
+               user_id as postWriter, created_at as postRegdate, view_count as postViews,
+               category_id as postCategory
+        FROM POSTS
+        ORDER BY created_at DESC
+    </select>
+    
+    <select id="getPostsByWriter" parameterType="string" resultType="com.tour.project.dto.PostDTO">
+        SELECT post_id as postId, title as postTitle, content as postContent,
+               user_id as postWriter, created_at as postRegdate, view_count as postViews,
+               category_id as postCategory
+        FROM POSTS
+        WHERE user_id = #{postWriter}
+        ORDER BY created_at DESC
+    </select>
+    
+    <select id="getPostCountByWriter" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM POSTS WHERE user_id = #{postWriter}
+    </select>
+    
+    <update id="updateViewCount" parameterType="int">
+        UPDATE POSTS SET view_count = view_count + 1 WHERE post_id = #{postId}
+    </update>
+
+</mapper>

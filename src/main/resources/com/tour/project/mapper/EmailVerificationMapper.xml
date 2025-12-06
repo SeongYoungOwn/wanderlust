@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.EmailVerificationDAO">
+
+    <!-- 인증 정보 저장 -->
+    <insert id="insertVerification" parameterType="com.tour.project.dto.EmailVerificationDTO">
+        INSERT INTO email_verification (email, verification_code, expires_at, is_verified, attempt_count)
+        VALUES (#{email}, #{verificationCode}, DATE_ADD(NOW(), INTERVAL 5 MINUTE), FALSE, 0)
+    </insert>
+
+    <!-- 이메일과 코드로 인증 정보 조회 -->
+    <select id="getVerification" resultType="com.tour.project.dto.EmailVerificationDTO">
+        SELECT
+            verification_id as verificationId,
+            email,
+            verification_code as verificationCode,
+            created_at as createdAt,
+            expires_at as expiresAt,
+            is_verified as isVerified,
+            attempt_count as attemptCount
+        FROM email_verification
+        WHERE email = #{email}
+          AND verification_code = #{code}
+          AND expires_at > NOW()
+          AND is_verified = FALSE
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 인증 상태 업데이트 -->
+    <update id="updateVerificationStatus">
+        UPDATE email_verification
+        SET is_verified = TRUE
+        WHERE email = #{email}
+          AND verification_code = #{code}
+          AND expires_at > NOW()
+    </update>
+
+    <!-- 시도 횟수 증가 -->
+    <update id="incrementAttemptCount">
+        UPDATE email_verification
+        SET attempt_count = attempt_count + 1
+        WHERE email = #{email}
+          AND is_verified = FALSE
+        ORDER BY created_at DESC
+        LIMIT 1
+    </update>
+
+    <!-- 이메일로 최근 인증 정보 조회 -->
+    <select id="getLatestVerification" resultType="com.tour.project.dto.EmailVerificationDTO">
+        SELECT
+            verification_id as verificationId,
+            email,
+            verification_code as verificationCode,
+            created_at as createdAt,
+            expires_at as expiresAt,
+            is_verified as isVerified,
+            attempt_count as attemptCount
+        FROM email_verification
+        WHERE email = #{email}
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+    <!-- 만료된 인증 정보 삭제 -->
+    <delete id="deleteExpiredVerifications">
+        DELETE FROM email_verification
+        WHERE expires_at &lt; NOW()
+          AND is_verified = FALSE
+    </delete>
+
+    <!-- 특정 이메일의 미인증 레코드 삭제 -->
+    <delete id="deleteUnverifiedByEmail">
+        DELETE FROM email_verification
+        WHERE email = #{email}
+          AND is_verified = FALSE
+    </delete>
+
+</mapper>
