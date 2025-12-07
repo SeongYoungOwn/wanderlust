@@ -1,25 +1,27 @@
 package com.tour.project.controller;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import com.tour.project.service.AiProviderService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+/**
+ * AI 여행 추천 컨트롤러
+ * - AiProviderService를 사용하여 Claude/Gemini Fallback 지원
+ * - /map/sido 페이지에서 호출됨
+ */
+@Slf4j
 @Controller
 @RequestMapping("/api/ai")
+@RequiredArgsConstructor
 public class ClaudeAIController {
-    
-    @Value("${claude.api.key:}")
-    private String apiKey;
-    
-    @Value("${claude.api.url:https://api.anthropic.com/v1/messages}")
-    private String apiUrl;
-    
+
+    private final AiProviderService aiProviderService;
+
     @PostMapping("/recommend")
     @ResponseBody
     public Map<String, Object> getTravelRecommendation(
@@ -27,16 +29,25 @@ public class ClaudeAIController {
             @RequestParam String period,
             @RequestParam String count,
             @RequestParam(required = false, defaultValue = "상관없음") String budget) {
-        
-        System.out.println("=== AI 추천 요청 받음 ===");
-        System.out.println("region: " + region);
-        System.out.println("period: " + period);
-        System.out.println("count: " + count);
-        System.out.println("budget: " + budget);
-        
+
+        log.info("=== AI 추천 요청 받음 ===");
+        log.info("region: {}, period: {}, count: {}, budget: {}", region, period, count, budget);
+        log.info("Primary Provider: {}, Fallback 가능: {}",
+                aiProviderService.getPrimaryProvider(),
+                aiProviderService.getProviderStatus().isFallbackAvailable());
+
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
+            // AI 사용 가능 여부 확인
+            if (!aiProviderService.isAnyProviderAvailable()) {
+                log.warn("사용 가능한 AI Provider가 없습니다. 더미 응답을 반환합니다.");
+                response.put("success", true);
+                response.put("recommendation", generateDummyRecommendation(region, period, count, budget));
+                response.put("provider", "dummy");
+                return response;
+            }
+
             String prompt = String.format(
                 "다음 조건에 맞는 한국 여행 계획을 상세하게 작성해주세요:\n" +
                 "- 여행 지역: %s\n" +
@@ -81,84 +92,73 @@ public class ClaudeAIController {
                 "특히 제시된 예산 범위 내에서 여행할 수 있는 현실적인 계획을 세워주세요.",
                 region, period, count, budget
             );
-            
-            String aiResponse = callClaudeAPI(prompt);
-            System.out.println("Claude API 응답 길이: " + (aiResponse != null ? aiResponse.length() : 0));
-            
-            response.put("success", true);
-            response.put("recommendation", aiResponse);
-            System.out.println("응답 전송 중: " + response.get("success"));
-            
+
+            // AiProviderService를 통해 AI 호출 (Claude/Gemini Fallback 자동 지원)
+            AiProviderService.AiResponse aiResponse = aiProviderService.queryWithSystemAndConfig(
+                null,  // 시스템 프롬프트 없음
+                prompt,
+                3000,  // max_tokens
+                0.7    // temperature
+            );
+
+            if (aiResponse.isSuccess()) {
+                log.info("AI 응답 성공 - Provider: {}, 토큰: {}",
+                        aiResponse.getProvider(), aiResponse.getTotalTokens());
+
+                response.put("success", true);
+                response.put("recommendation", aiResponse.getContent());
+                response.put("provider", aiResponse.getProvider());
+                response.put("tokens", aiResponse.getTotalTokens());
+            } else {
+                log.error("AI 응답 실패 - Provider: {}, 오류: {}",
+                        aiResponse.getProvider(), aiResponse.getErrorMessage());
+
+                // AI 실패 시 더미 응답 반환
+                response.put("success", true);
+                response.put("recommendation", generateDummyRecommendation(region, period, count, budget));
+                response.put("provider", "fallback");
+                response.put("originalError", aiResponse.getErrorMessage());
+            }
+
         } catch (Exception e) {
-            System.err.println("AI 추천 생성 중 오류: " + e.getMessage());
-            e.printStackTrace();
+            log.error("AI 추천 생성 중 예외 발생", e);
             response.put("success", false);
             response.put("message", "AI 추천 생성 중 오류가 발생했습니다: " + e.getMessage());
         }
-        
+
         return response;
     }
-    
-    private String callClaudeAPI(String prompt) throws Exception {
-        // Claude API 키가 없으면 더미 응답 반환
-        if (apiKey == null || apiKey.trim().isEmpty()) {
-            return generateDummyRecommendation(prompt);
-        }
-        
-        RestTemplate restTemplate = new RestTemplate();
-        
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", apiKey);
-        headers.set("anthropic-version", "2023-06-01");
-        
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "claude-sonnet-4-20250514");
-        requestBody.put("max_tokens", 3000);
-        requestBody.put("temperature", 0.7);
-        
-        Map<String, String> message = new HashMap<>();
-        message.put("role", "user");
-        message.put("content", prompt);
-        requestBody.put("messages", List.of(message));
-        
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-        
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                apiUrl,
-                HttpMethod.POST,
-                request,
-                Map.class
-            );
-            
-            Map<String, Object> responseBody = response.getBody();
-            if (responseBody != null && responseBody.containsKey("content")) {
-                List<Map<String, Object>> content = (List<Map<String, Object>>) responseBody.get("content");
-                if (!content.isEmpty()) {
-                    return (String) content.get(0).get("text");
-                }
-            }
-            
-            throw new Exception("Claude API로부터 올바른 응답을 받지 못했습니다.");
-            
-        } catch (Exception e) {
-            throw new Exception("Claude API 호출 중 오류 발생: " + e.getMessage());
-        }
+
+    /**
+     * Provider 상태 확인 API
+     */
+    @GetMapping("/provider-status")
+    @ResponseBody
+    public Map<String, Object> getProviderStatus() {
+        Map<String, Object> status = new HashMap<>();
+        AiProviderService.ProviderStatus providerStatus = aiProviderService.getProviderStatus();
+
+        status.put("primaryProvider", providerStatus.getPrimaryProvider());
+        status.put("claudeConfigured", providerStatus.isClaudeConfigured());
+        status.put("geminiConfigured", providerStatus.isGeminiConfigured());
+        status.put("fallbackAvailable", providerStatus.isFallbackAvailable());
+        status.put("anyProviderAvailable", aiProviderService.isAnyProviderAvailable());
+
+        return status;
     }
-    
-    private String generateDummyRecommendation(String prompt) {
-        return "🎯 **여행 개요**\n" +
+
+    private String generateDummyRecommendation(String region, String period, String count, String budget) {
+        return "🎯 **" + region + " 여행 개요**\n" +
                "- 추천 테마: 자연과 문화가 어우러진 힐링 여행\n" +
                "- 예상 총 비용: 1인당 약 25만원\n" +
                "- 최적 여행 시기: 봄, 가을\n\n" +
                "📅 **일차별 상세 일정**\n\n" +
                "**1일차**\n" +
                "🌅 **오전 (9:00-12:00)**\n" +
-               "- 주요 관광명소 방문\n" +
+               "- " + region + " 주요 관광명소 방문\n" +
                "- 예상 소요시간: 3시간, 입장료: 5,000원\n\n" +
                "🍽️ **점심 (12:00-14:00)**\n" +
-               "- 현지 맛집에서 특색 요리 체험\n" +
+               "- 현지 맛집에서 " + region + " 특색 요리 체험\n" +
                "- 예상 비용: 15,000원\n\n" +
                "☀️ **오후 (14:00-18:00)**\n" +
                "- 문화체험 및 쇼핑\n" +
@@ -171,7 +171,7 @@ public class ClaudeAIController {
                "- 예상 비용: 80,000원\n\n" +
                "💡 **여행 팁**\n" +
                "- 대중교통 이용 시 교통카드 구매 권장\n" +
-               "- 현지 특산품: 지역 특색 기념품\n" +
+               "- 현지 특산품: " + region + " 특색 기념품\n" +
                "- 날씨 변화에 대비한 옷차림 준비\n\n" +
                "💰 **예상 총 비용 (1인 기준)**\n" +
                "- 교통비: 50,000원\n" +
@@ -180,6 +180,6 @@ public class ClaudeAIController {
                "- 관광/체험비: 50,000원\n" +
                "- 기타: 20,000원\n" +
                "- **총합: 250,000원**\n\n" +
-               "※ 실제 Claude API 키가 설정되지 않아 더미 응답을 제공하고 있습니다.";
+               "※ AI API 키가 설정되지 않아 기본 추천을 제공합니다. 관리자 설정에서 Claude 또는 Gemini API 키를 등록해주세요.";
     }
 }
