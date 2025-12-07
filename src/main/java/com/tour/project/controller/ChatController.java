@@ -1369,29 +1369,35 @@ public class ChatController {
                 "            if (message.type === 'JOIN' || message.type === 'LEAVE') {\n" +
                 "                messageDiv.className = 'message system';\n" +
                 "                messageDiv.textContent = message.content;\n" +
-                "            } else if (message.type === 'FILE') {\n" +
+                "            } else if (message.type === 'FILE' || message.type === 'IMAGE') {\n" +
                 "                messageDiv.className = 'message ' + (message.senderId === currentUserId ? 'own' : 'other');\n" +
                 "                let content = '';\n" +
                 "                if (message.senderId !== currentUserId) {\n" +
                 "                    content += '<strong>' + message.senderName + ':</strong><br>';\n" +
                 "                }\n" +
                 "                \n" +
+                "                // 파일명 null 방지\n" +
+                "                var displayName = message.originalFilename || message.fileName || '파일';\n" +
+                "                // filePath가 /uploads/로 시작하면 그대로, 아니면 /chat/file/ 붙임\n" +
+                "                var filePath = message.filePath || '';\n" +
+                "                var imgSrc = filePath.startsWith('/uploads/') ? filePath : '/chat/file/' + filePath;\n" +
+                "                \n" +
                 "                // 파일 타입에 따라 다른 표시\n" +
                 "                if (message.fileType && message.fileType.startsWith('image/')) {\n" +
                 "                    // 이미지 파일\n" +
                 "                    content += '<div class=\"file-message\">';\n" +
-                "                    content += '<img src=\"/chat/file/' + message.filePath + '\" class=\"uploaded-image\" onclick=\"window.open(this.src)\" alt=\"' + message.originalFilename + '\">';\n" +
+                "                    content += '<img src=\"' + imgSrc + '\" class=\"uploaded-image\" onclick=\"window.open(this.src)\" alt=\"' + displayName + '\">';\n" +
                 "                    content += '<div class=\"file-info\">';\n" +
-                "                    content += '<div class=\"file-name\">' + message.originalFilename + '</div>';\n" +
+                "                    content += '<div class=\"file-name\">' + displayName + '</div>';\n" +
                 "                    content += '<div class=\"file-size\">' + formatFileSize(message.fileSizeBytes) + '</div>';\n" +
                 "                    content += '</div>';\n" +
                 "                    content += '</div>';\n" +
                 "                } else {\n" +
                 "                    // 일반 파일\n" +
-                "                    content += '<div class=\"file-message\" onclick=\"downloadFile(\\'' + message.filePath + '\\', \\'' + message.originalFilename + '\\')\">';\n" +
+                "                    content += '<div class=\"file-message\" onclick=\"downloadFile(\\'' + filePath + '\\', \\'' + displayName + '\\')\">';\n" +
                 "                    content += '<div class=\"file-icon\">' + getFileIcon(message.fileType) + '</div>';\n" +
                 "                    content += '<div class=\"file-info\">';\n" +
-                "                    content += '<div class=\"file-name\">' + message.originalFilename + '</div>';\n" +
+                "                    content += '<div class=\"file-name\">' + displayName + '</div>';\n" +
                 "                    content += '<div class=\"file-size\">' + formatFileSize(message.fileSizeBytes) + ' • 클릭하여 다운로드</div>';\n" +
                 "                    content += '</div>';\n" +
                 "                    content += '</div>';\n" +
