@@ -1155,12 +1155,6 @@ public class ChatController {
                 "            cursor: pointer;\n" +
                 "            display: block;\n" +
                 "        }\n" +
-                "        .file-message:has(.uploaded-image) {\n" +
-                "            padding: 0;\n" +
-                "            border: none;\n" +
-                "            background: transparent;\n" +
-                "            display: inline-block;\n" +
-                "        }\n" +
                 "        .upload-progress {\n" +
                 "            width: 100%;\n" +
                 "            height: 4px;\n" +
@@ -1396,10 +1390,8 @@ public class ChatController {
                 "                var imgSrc = (message.filePath && message.filePath.startsWith('/uploads/')) ? message.filePath : '/chat/file/' + message.filePath;\n" +
                 "                \n" +
                 "                if (isImage) {\n" +
-                "                    // 이미지 파일\n" +
-                "                    content += '<div class=\"file-message\">';\n" +
+                "                    // 이미지 파일 - 이미지만 깔끔하게\n" +
                 "                    content += '<img src=\"' + imgSrc + '\" class=\"uploaded-image\" onclick=\"window.open(this.src)\" alt=\"' + (message.originalFilename || '') + '\">';\n" +
-                "                    content += '</div>';\n" +
                 "                } else {\n" +
                 "                    // 일반 파일\n" +
                 "                    content += '<div class=\"file-message\" onclick=\"downloadFile(\\'' + message.filePath + '\\', \\'' + (message.originalFilename || message.filePath) + '\\')\">';\n" +
