@@ -57,6 +57,7 @@
             background: white;
             border-radius: 18px;
             max-width: 60%;
+            width: fit-content;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             align-self: flex-start;
         }
