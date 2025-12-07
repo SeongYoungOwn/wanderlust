@@ -89,7 +89,7 @@ public class MobileApiController {
     @Autowired(required = false)
     private SimpMessageSendingOperations messagingTemplate;
 
-    @Value("${upload.path:E:/tour-project/uploads/}")
+    @Value("${upload.path:uploads/}")
     private String uploadPath;
 
     @PostMapping("/login")
