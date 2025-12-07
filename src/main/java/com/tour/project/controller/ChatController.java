@@ -966,12 +966,12 @@ public class ChatController {
                 "            padding: 12px 18px;\n" +
                 "            border-radius: 18px;\n" +
                 "            max-width: 75%;\n" +
+                "            width: fit-content;\n" +
                 "        }\n" +
                 "        .message.own {\n" +
                 "            background: var(--gradient-primary);\n" +
                 "            color: white;\n" +
                 "            margin-left: auto;\n" +
-                "            text-align: right;\n" +
                 "        }\n" +
                 "        .message.other {\n" +
                 "            background: white;\n" +
