@@ -1153,6 +1153,13 @@ public class ChatController {
                 "            border-radius: 10px;\n" +
                 "            box-shadow: 0 2px 8px rgba(0,0,0,0.1);\n" +
                 "            cursor: pointer;\n" +
+                "            display: block;\n" +
+                "        }\n" +
+                "        .file-message:has(.uploaded-image) {\n" +
+                "            padding: 0;\n" +
+                "            border: none;\n" +
+                "            background: transparent;\n" +
+                "            display: inline-block;\n" +
                 "        }\n" +
                 "        .upload-progress {\n" +
                 "            width: 100%;\n" +
