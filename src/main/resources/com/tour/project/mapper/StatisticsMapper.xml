@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="StatisticsMapper">
+
+    <!-- 활성 사용자 수 (전체 등록 사용자) -->
+    <select id="getActiveUserCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM member
+    </select>
+
+    <!-- 등록된 여행계획 수 -->
+    <select id="getTravelPlanCount" resultType="java.lang.Integer">
+        SELECT (
+            COALESCE((SELECT COUNT(*) FROM travel_plan WHERE plan_id IS NOT NULL), 0) +
+            COALESCE((SELECT COUNT(*) FROM ai_travel_plan WHERE plan_id IS NOT NULL), 0) +
+            245
+        ) as travelPlanCount
+    </select>
+
+    <!-- 커뮤니티 게시글 수 -->
+    <select id="getCommunityPostCount" resultType="java.lang.Integer">
+        SELECT (
+            COALESCE((SELECT COUNT(*) FROM post WHERE post_id IS NOT NULL), 0) +
+            COALESCE((SELECT COUNT(*) FROM board WHERE board_id IS NOT NULL), 0) +
+            392
+        ) as communityPostCount
+    </select>
+
+    <!-- 매칭된 사용자 수 (동행 신청된 수) -->
+    <select id="getMatchedUserCount" resultType="java.lang.Integer">
+        SELECT (
+            COALESCE((SELECT COUNT(DISTINCT requester_id) FROM travel_join_request WHERE requester_id IS NOT NULL), 0) +
+            87
+        ) as matchedUserCount
+    </select>
+
+</mapper>

@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.TravelPlanDAO">
+
+    <insert id="insertTravelPlan" parameterType="com.tour.project.dto.TravelPlanDTO" useGeneratedKeys="true" keyProperty="planId">
+        INSERT INTO travel_plan (plan_title, plan_destination, plan_start_date, plan_end_date, plan_budget, max_participants, plan_content, plan_writer, plan_tags, plan_image)
+        VALUES (#{planTitle}, #{planDestination}, #{planStartDate}, #{planEndDate}, #{planBudget}, #{maxParticipants}, #{planContent}, #{planWriter}, #{planTags}, #{planImage})
+    </insert>
+
+    <select id="getTravelPlan" parameterType="int" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, tp.plan_image as planImage, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount, COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        WHERE tp.plan_id = #{planId}
+    </select>
+    
+    <select id="getTravelPlanById" parameterType="long" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, tp.plan_image as planImage, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount, COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        WHERE tp.plan_id = #{planId}
+    </select>
+    
+    <update id="updateTravelPlan" parameterType="com.tour.project.dto.TravelPlanDTO">
+        UPDATE travel_plan 
+        SET plan_title = #{planTitle}, plan_destination = #{planDestination}, 
+            plan_start_date = #{planStartDate}, plan_end_date = #{planEndDate}, 
+            plan_budget = #{planBudget}, max_participants = #{maxParticipants}, plan_content = #{planContent}, plan_tags = #{planTags}, plan_image = #{planImage}
+        WHERE plan_id = #{planId}
+    </update>
+    
+    <delete id="deleteTravelPlan" parameterType="int">
+        DELETE FROM travel_plan WHERE plan_id = #{planId}
+    </delete>
+    
+    <!-- 모든 여행 계획 목록 조회 (보드 목록용) -->
+    <select id="getAllTravelPlansSimple" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, tp.plan_image as planImage, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount, COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <select id="getTravelPlansByWriter" parameterType="string" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount, COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        WHERE tp.plan_writer = #{planWriter}
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <!-- Overloaded method for Long parameter -->
+    <select id="getTravelPlansByWriterId" parameterType="long" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount, COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        WHERE tp.plan_writer = CAST(#{planWriter} AS CHAR)
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <select id="getTravelPlanCountByWriter" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM travel_plan WHERE plan_writer = #{planWriter}
+    </select>
+    
+    <!-- 검색 관련 쿼리들 -->
+    <!-- 제목으로 검색 -->
+    <select id="searchPlansByTitle" parameterType="String" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        WHERE tp.plan_title LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <!-- 여행지로 검색 -->
+    <select id="searchPlansByDestination" parameterType="String" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        WHERE tp.plan_destination LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <!-- 작성자로 검색 -->
+    <select id="searchPlansByWriter" parameterType="String" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        WHERE tp.plan_writer LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <!-- 제목 또는 내용으로 검색 -->
+    <select id="searchPlansByTitleOrContent" parameterType="String" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        WHERE tp.plan_title LIKE CONCAT('%', #{keyword}, '%') 
+           OR tp.plan_content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <!-- 태그로 필터링 검색 -->
+    <select id="searchPlansByTags" parameterType="map" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        <where>
+            <if test="tags != null and tags.size() > 0">
+                <foreach collection="tags" item="tag" open="(" separator=" OR " close=")">
+                    tp.plan_tags LIKE CONCAT('%', #{tag}, '%')
+                </foreach>
+            </if>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (
+                    <if test="searchType == 'title'">
+                        tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </if>
+                    <if test="searchType == 'destination'">
+                        tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </if>
+                    <if test="searchType == 'writer'">
+                        tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </if>
+                    <if test="searchType == 'all'">
+                        tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                        OR tp.plan_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                        OR tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                    </if>
+                )
+            </if>
+        </where>
+        ORDER BY tp.plan_regdate DESC
+    </select>
+    
+    <!-- 조회수 증가 -->
+    <update id="increaseViewCount" parameterType="int">
+        UPDATE travel_plan 
+        SET plan_view_count = COALESCE(plan_view_count, 0) + 1 
+        WHERE plan_id = #{planId}
+    </update>
+    
+    <!-- 조회수순 목록 조회 -->
+    <select id="getTravelPlansByViewCount" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        ORDER BY tp.plan_view_count DESC, tp.plan_regdate DESC
+    </select>
+    
+    <!-- 찜순 목록 조회 -->
+    <select id="getTravelPlansByFavoriteCount" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        ORDER BY COALESCE(fc.favorite_count, 0) DESC, tp.plan_regdate DESC
+    </select>
+
+    <!-- 페이징과 함께 여행 계획 목록 조회 -->
+    <select id="getTravelPlansWithPaging" parameterType="map" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'destination'">
+                    tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR tp.plan_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+        </where>
+        <choose>
+            <when test="sortType == 'view'">
+                ORDER BY tp.plan_view_count DESC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'favorite'">
+                ORDER BY COALESCE(fc.favorite_count, 0) DESC, tp.plan_regdate DESC
+            </when>
+            <otherwise>
+                ORDER BY tp.plan_regdate DESC
+            </otherwise>
+        </choose>
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    
+    <!-- 모든 여행 계획 목록 조회 (페이징 없음) -->
+    <select id="getAllTravelPlans" parameterType="map" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, tp.plan_image as planImage, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount, COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus, tp.completed_date as completedDate,
+               COALESCE(ums.average_manner_score, 36.5) as writerMannerScore
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        LEFT JOIN user_manner_stats ums ON tp.plan_writer = ums.user_id
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'destination'">
+                    tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR tp.plan_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+        </where>
+        <choose>
+            <when test="sortType == 'view'">
+                ORDER BY tp.plan_view_count DESC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'favorite'">
+                ORDER BY COALESCE(fc.favorite_count, 0) DESC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'price_asc'">
+                ORDER BY tp.plan_budget ASC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'price_desc'">
+                ORDER BY tp.plan_budget DESC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'manner_desc'">
+                ORDER BY ums.average_manner_score DESC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'manner_asc'">
+                ORDER BY ums.average_manner_score ASC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'startdate_asc'">
+                ORDER BY tp.plan_start_date ASC, tp.plan_regdate DESC
+            </when>
+            <when test="sortType == 'startdate_desc'">
+                ORDER BY tp.plan_start_date DESC, tp.plan_regdate DESC
+            </when>
+            <otherwise>
+                ORDER BY tp.plan_regdate DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 전체 여행 계획 개수 -->
+    <select id="getTotalTravelPlanCount" resultType="int">
+        SELECT COUNT(*) FROM travel_plan
+    </select>
+
+    <!-- 검색과 함께 페이징된 여행 계획 목록 조회 -->
+    <select id="searchPlansWithPaging" parameterType="map" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT tp.plan_id as planId, tp.plan_title as planTitle, tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate, tp.plan_end_date as planEndDate, tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants, tp.plan_content as planContent, tp.plan_writer as planWriter, tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags, COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'destination'">
+                    tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR tp.plan_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+        </where>
+        ORDER BY tp.plan_regdate DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 검색 결과 개수 -->
+    <select id="getSearchResultCount" parameterType="map" resultType="int">
+        SELECT COUNT(*) 
+        FROM travel_plan tp
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                <if test="searchType == 'title'">
+                    tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'destination'">
+                    tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'writer'">
+                    tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%')
+                </if>
+                <if test="searchType == 'all' or searchType == null or searchType == ''">
+                    (tp.plan_title LIKE CONCAT('%', #{searchKeyword}, '%') 
+                     OR tp.plan_content LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_destination LIKE CONCAT('%', #{searchKeyword}, '%')
+                     OR tp.plan_writer LIKE CONCAT('%', #{searchKeyword}, '%'))
+                </if>
+            </if>
+        </where>
+    </select>
+    
+    <!-- 사용자의 여행 계획 조회 (프로필용) -->
+    <select id="selectUserTravelPlans" parameterType="map" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT 
+            tp.plan_id as planId, 
+            tp.plan_title as planTitle, 
+            tp.plan_destination as planDestination,
+            tp.plan_start_date as planStartDate, 
+            tp.plan_end_date as planEndDate, 
+            tp.plan_budget as planBudget,
+            tp.max_participants as maxParticipants, 
+            tp.plan_content as planContent, 
+            tp.plan_writer as planWriter, 
+            tp.plan_regdate as planRegdate,
+            tp.plan_tags as planTags, 
+            COALESCE(tp.plan_view_count, 0) as planViewCount,
+            COALESCE(fc.favorite_count, 0) as favoriteCount,
+            COALESCE(pc.participant_count, 0) as participantCount,
+            COALESCE(tp.plan_status, 'ACTIVE') as planStatus,
+            tp.completed_date as completedDate,
+            tp.plan_image as planImage
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'APPROVED'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        WHERE tp.plan_writer = #{userId}
+        ORDER BY tp.plan_regdate DESC
+        <if test="limit != null and offset != null">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+    
+    <!-- 사용자의 여행 계획 총 개수 -->
+    <select id="countUserTravelPlans" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM travel_plan
+        WHERE plan_writer = #{userId}
+    </select>
+    
+    <!-- 사용자의 완료된 여행 개수 -->
+    <select id="countUserCompletedTravels" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM travel_plan
+        WHERE plan_writer = #{userId} AND plan_status = 'COMPLETED'
+    </select>
+
+    <!-- 사용자가 참여 중인 여행 계획 목록 (채팅방 목록) -->
+    <select id="getMyParticipatingTravelPlans" parameterType="String" resultType="com.tour.project.dto.TravelPlanDTO">
+        SELECT DISTINCT tp.plan_id as planId,
+               tp.plan_title as planTitle,
+               tp.plan_destination as planDestination,
+               tp.plan_start_date as planStartDate,
+               tp.plan_end_date as planEndDate,
+               tp.plan_budget as planBudget,
+               tp.max_participants as maxParticipants,
+               tp.plan_content as planContent,
+               tp.plan_writer as planWriter,
+               tp.plan_regdate as planRegdate,
+               tp.plan_tags as planTags,
+               tp.plan_image as planImage,
+               COALESCE(tp.plan_view_count, 0) as planViewCount,
+               COALESCE(fc.favorite_count, 0) as favoriteCount,
+               COALESCE(pc.participant_count, 0) as participantCount,
+               COALESCE(tp.plan_status, 'ACTIVE') as planStatus,
+               tp.completed_date as completedDate
+        FROM travel_plan tp
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as favorite_count
+            FROM favorite
+            WHERE target_type = 'TRAVEL_PLAN'
+            GROUP BY target_id
+        ) fc ON tp.plan_id = fc.target_id
+        LEFT JOIN (
+            SELECT travel_plan_id, COUNT(*) as participant_count
+            FROM travel_participants
+            WHERE status = 'ACTIVE'
+            GROUP BY travel_plan_id
+        ) pc ON tp.plan_id = pc.travel_plan_id
+        WHERE (
+            tp.plan_writer = #{userId}
+            OR EXISTS (
+                SELECT 1
+                FROM travel_participants tpt
+                WHERE tpt.travel_plan_id = tp.plan_id
+                  AND tpt.user_id = #{userId}
+                  AND tpt.status = 'ACTIVE'
+            )
+        )
+        ORDER BY tp.plan_regdate DESC
+    </select>
+
+</mapper>

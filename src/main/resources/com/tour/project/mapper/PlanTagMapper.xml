@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.PlanTagDAO">
+
+    <!-- 계획의 태그들 저장 -->
+    <insert id="insertPlanTags">
+        INSERT INTO plan_tags (plan_id, tag_name)
+        VALUES
+        <foreach item="tag" collection="tags" separator=",">
+            (#{planId}, #{tag})
+        </foreach>
+    </insert>
+
+    <!-- 계획의 태그들 조회 -->
+    <select id="getPlanTags" parameterType="Long" resultType="String">
+        SELECT tag_name
+        FROM plan_tags
+        WHERE plan_id = #{planId}
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 계획의 태그들 삭제 -->
+    <delete id="deletePlanTags" parameterType="Long">
+        DELETE FROM plan_tags
+        WHERE plan_id = #{planId}
+    </delete>
+
+    <!-- 계획의 태그들 업데이트 (기존 삭제 후 새로 추가) -->
+    <delete id="updatePlanTagsDelete" parameterType="Long">
+        DELETE FROM plan_tags WHERE plan_id = #{planId}
+    </delete>
+    
+    <insert id="updatePlanTagsInsert">
+        INSERT INTO plan_tags (plan_id, tag_name) VALUES
+        <foreach item="tag" collection="tags" separator=",">
+            (#{planId}, #{tag})
+        </foreach>
+    </insert>
+
+    <!-- 인기 태그 목록 조회 -->
+    <select id="getPopularTags" parameterType="int" resultType="String">
+        SELECT tag_name
+        FROM plan_tags
+        GROUP BY tag_name
+        ORDER BY COUNT(*) DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 사용자별 자주 사용하는 태그 조회 -->
+    <select id="getUserFrequentTags" resultType="String">
+        SELECT pt.tag_name
+        FROM plan_tags pt
+        INNER JOIN travel_plans tp ON pt.plan_id = tp.plan_id
+        WHERE tp.user_id = #{userId}
+        GROUP BY pt.tag_name
+        ORDER BY COUNT(*) DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

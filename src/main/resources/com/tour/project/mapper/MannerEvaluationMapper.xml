@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tour.project.dao.MannerEvaluationDAO">
+
+    <!-- 매너 평가 삽입 -->
+    <insert id="insertEvaluation" parameterType="com.tour.project.dto.MannerEvaluationDTO">
+        INSERT INTO manner_evaluation (
+            travel_plan_id, evaluator_id, evaluated_id, manner_score, evaluation_type, evaluation_category, is_like, evaluation_comment
+        ) VALUES (
+            #{travelPlanId}, #{evaluatorId}, #{evaluatedId}, #{mannerScore}, #{evaluationType}, #{evaluationCategory}, #{isLike}, #{evaluationComment}
+        )
+    </insert>
+
+    <!-- 매너 평가 수정 -->
+    <update id="updateEvaluation" parameterType="com.tour.project.dto.MannerEvaluationDTO">
+        UPDATE manner_evaluation 
+        SET manner_score = #{mannerScore},
+            evaluation_type = #{evaluationType},
+            evaluation_category = #{evaluationCategory},
+            is_like = #{isLike},
+            evaluation_comment = #{evaluationComment},
+            updated_date = CURRENT_TIMESTAMP
+        WHERE evaluation_id = #{evaluationId}
+    </update>
+
+    <!-- 매너 평가 삭제 -->
+    <delete id="deleteEvaluation" parameterType="int">
+        DELETE FROM manner_evaluation WHERE evaluation_id = #{evaluationId}
+    </delete>
+
+    <!-- 매너 평가 단일 조회 -->
+    <select id="getEvaluation" parameterType="int" resultType="com.tour.project.dto.MannerEvaluationDTO">
+        SELECT me.evaluation_id as evaluationId,
+               me.travel_plan_id as travelPlanId,
+               me.evaluator_id as evaluatorId,
+               me.evaluated_id as evaluatedId,
+               me.manner_score as mannerScore,
+               me.evaluation_type as evaluationType,
+               me.evaluation_category as evaluationCategory,
+               me.is_like as isLike,
+               me.evaluation_comment as evaluationComment,
+               me.created_date as createdDate,
+               me.updated_date as updatedDate,
+               COALESCE(evaluated.user_name, evaluated.user_id) as evaluatedNickname,
+               NULL as evaluatedProfileImage,
+               COALESCE(evaluator.user_name, evaluator.user_id) as evaluatorNickname,
+               NULL as evaluatorProfileImage,
+               tp.plan_title as travelPlanTitle
+        FROM manner_evaluation me
+        LEFT JOIN member evaluated ON me.evaluated_id = evaluated.user_id
+        LEFT JOIN member evaluator ON me.evaluator_id = evaluator.user_id
+        LEFT JOIN travel_plan tp ON me.travel_plan_id = tp.plan_id
+        WHERE me.evaluation_id = #{evaluationId}
+    </select>
+
+    <!-- 특정 조건으로 평가 조회 -->
+    <select id="getEvaluationByIds" resultType="com.tour.project.dto.MannerEvaluationDTO">
+        SELECT me.evaluation_id as evaluationId,
+               me.travel_plan_id as travelPlanId,
+               me.evaluator_id as evaluatorId,
+               me.evaluated_id as evaluatedId,
+               me.manner_score as mannerScore,
+               me.is_like as isLike,
+               me.evaluation_comment as evaluationComment,
+               me.created_date as createdDate,
+               me.updated_date as updatedDate,
+               COALESCE(evaluated.user_name, evaluated.user_id) as evaluatedNickname,
+               NULL as evaluatedProfileImage
+        FROM manner_evaluation me
+        LEFT JOIN member evaluated ON me.evaluated_id = evaluated.user_id
+        WHERE me.travel_plan_id = #{travelPlanId}
+          AND me.evaluator_id = #{evaluatorId}
+          AND me.evaluated_id = #{evaluatedId}
+    </select>
+
+    <!-- 여행 계획별 평가 목록 -->
+    <select id="getEvaluationsByTravelPlan" parameterType="int" resultType="com.tour.project.dto.MannerEvaluationDTO">
+        SELECT me.evaluation_id as evaluationId,
+               me.travel_plan_id as travelPlanId,
+               me.evaluator_id as evaluatorId,
+               me.evaluated_id as evaluatedId,
+               me.manner_score as mannerScore,
+               me.is_like as isLike,
+               me.evaluation_comment as evaluationComment,
+               me.created_date as createdDate,
+               me.updated_date as updatedDate,
+               COALESCE(evaluated.user_name, evaluated.user_id) as evaluatedNickname,
+               NULL as evaluatedProfileImage,
+               evaluator.nickname as evaluatorNickname,
+               evaluator.profile_image as evaluatorProfileImage
+        FROM manner_evaluation me
+        LEFT JOIN member evaluated ON me.evaluated_id = evaluated.user_id
+        LEFT JOIN member evaluator ON me.evaluator_id = evaluator.user_id
+        WHERE me.travel_plan_id = #{travelPlanId}
+        ORDER BY me.created_date DESC
+    </select>
+
+    <!-- 평가자별 평가 목록 -->
+    <select id="getEvaluationsByEvaluator" parameterType="String" resultType="com.tour.project.dto.MannerEvaluationDTO">
+        SELECT me.evaluation_id as evaluationId,
+               me.travel_plan_id as travelPlanId,
+               me.evaluator_id as evaluatorId,
+               me.evaluated_id as evaluatedId,
+               me.manner_score as mannerScore,
+               me.is_like as isLike,
+               me.evaluation_comment as evaluationComment,
+               me.created_date as createdDate,
+               me.updated_date as updatedDate,
+               COALESCE(evaluated.nickname, evaluated.user_name, evaluated.user_id) as evaluatedNickname,
+               evaluated.profile_image as evaluatedProfileImage,
+               tp.plan_title as travelPlanTitle
+        FROM manner_evaluation me
+        LEFT JOIN member evaluated ON me.evaluated_id = evaluated.user_id
+        LEFT JOIN travel_plan tp ON me.travel_plan_id = tp.plan_id
+        WHERE me.evaluator_id = #{evaluatorId}
+        ORDER BY me.created_date DESC
+    </select>
+
+    <!-- 피평가자별 받은 평가 목록 -->
+    <select id="getEvaluationsByEvaluated" parameterType="String" resultType="com.tour.project.dto.MannerEvaluationDTO">
+        SELECT me.evaluation_id as evaluationId,
+               me.travel_plan_id as travelPlanId,
+               me.evaluator_id as evaluatorId,
+               me.evaluated_id as evaluatedId,
+               me.manner_score as mannerScore,
+               me.is_like as isLike,
+               me.evaluation_comment as evaluationComment,
+               me.created_date as createdDate,
+               me.updated_date as updatedDate,
+               COALESCE(evaluator.nickname, evaluator.user_name, evaluator.user_id) as evaluatorNickname,
+               evaluator.profile_image as evaluatorProfileImage,
+               tp.plan_title as travelPlanTitle
+        FROM manner_evaluation me
+        LEFT JOIN member evaluator ON me.evaluator_id = evaluator.user_id
+        LEFT JOIN travel_plan tp ON me.travel_plan_id = tp.plan_id
+        WHERE me.evaluated_id = #{evaluatedId}
+        ORDER BY me.created_date DESC
+    </select>
+
+    <!-- 평가 가능한 사용자 조회 (이미 평가한 사용자 제외) -->
+    <select id="getEvaluatableUsers" resultType="String">
+        SELECT DISTINCT user_id
+        FROM (
+            SELECT tjr.requester_id as user_id
+            FROM travel_join_requests tjr
+            WHERE tjr.travel_plan_id = #{travelPlanId}
+              AND tjr.requester_id != #{evaluatorId}
+              AND tjr.status = 'APPROVED'
+            UNION
+            SELECT plan.plan_writer as user_id
+            FROM travel_plan plan
+            WHERE plan.plan_id = #{travelPlanId}
+              AND plan.plan_writer != #{evaluatorId}
+        ) AS all_participants
+        WHERE user_id NOT IN (
+            SELECT me.evaluated_id
+            FROM manner_evaluation me
+            WHERE me.travel_plan_id = #{travelPlanId}
+              AND me.evaluator_id = #{evaluatorId}
+        )
+    </select>
+
+    <!-- 평가 권한 체크 -->
+    <select id="canEvaluate" resultType="boolean">
+        SELECT CASE 
+            WHEN (
+                SELECT COUNT(*) FROM (
+                    SELECT tjr.requester_id
+                    FROM travel_join_requests tjr
+                    WHERE tjr.travel_plan_id = #{travelPlanId}
+                      AND tjr.requester_id = #{evaluatorId}
+                      AND tjr.status = 'APPROVED'
+                    UNION
+                    SELECT plan.plan_writer
+                    FROM travel_plan plan
+                    WHERE plan.plan_id = #{travelPlanId}
+                      AND plan.plan_writer = #{evaluatorId}
+                ) AS evaluator_check
+            ) > 0
+            AND EXISTS (
+                SELECT 1
+                FROM travel_plan tp
+                WHERE tp.plan_id = #{travelPlanId}
+                  AND tp.plan_status = 'COMPLETED'
+            )
+            AND (
+                SELECT COUNT(*) FROM (
+                    SELECT tjr.requester_id
+                    FROM travel_join_requests tjr
+                    WHERE tjr.travel_plan_id = #{travelPlanId}
+                      AND tjr.requester_id = #{evaluatedId}
+                      AND tjr.status = 'APPROVED'
+                    UNION
+                    SELECT plan.plan_writer
+                    FROM travel_plan plan
+                    WHERE plan.plan_id = #{travelPlanId}
+                      AND plan.plan_writer = #{evaluatedId}
+                ) AS evaluated_check
+            ) > 0
+            THEN TRUE
+            ELSE FALSE
+        END
+    </select>
+
+    <!-- 여행 완료 처리 -->
+    <update id="completeTravelPlan">
+        UPDATE travel_plan 
+        SET plan_status = 'COMPLETED',
+            completed_date = CURRENT_TIMESTAMP
+        WHERE plan_id = #{planId}
+          AND plan_writer = #{authorId}
+          AND (plan_status IS NULL OR plan_status = 'ACTIVE')
+    </update>
+
+    <!-- 여행 완료 여부 확인 -->
+    <select id="isTravelCompleted" parameterType="int" resultType="boolean">
+        SELECT plan_status = 'COMPLETED'
+        FROM travel_plan
+        WHERE plan_id = #{planId}
+    </select>
+
+    <!-- 여행 작성자 확인 -->
+    <select id="isTravelAuthor" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM travel_plan
+        WHERE plan_id = #{planId}
+          AND plan_writer = #{userId}
+    </select>
+
+    <!-- 사용자 매너 통계 조회 -->
+    <select id="getUserMannerStats" parameterType="String" resultType="com.tour.project.dto.UserMannerStatsDTO">
+        SELECT ums.user_id as userId,
+               ums.total_evaluations as totalEvaluations,
+               ums.average_manner_score as averageMannerScore,
+               ums.total_likes as totalLikes,
+               ums.total_dislikes as totalDislikes,
+               ums.completed_travels as completedTravels,
+               ums.last_updated as lastUpdated,
+               COALESCE(m.user_name, m.user_id) as nickname,
+               NULL as profileImage
+        FROM user_manner_stats ums
+        LEFT JOIN member m ON ums.user_id = m.user_id
+        WHERE ums.user_id = #{userId}
+    </select>
+
+    <!-- 사용자 매너 통계 삽입 -->
+    <insert id="insertUserMannerStats" parameterType="com.tour.project.dto.UserMannerStatsDTO">
+        INSERT INTO user_manner_stats (
+            user_id, total_evaluations, average_manner_score, 
+            total_likes, total_dislikes, completed_travels
+        ) VALUES (
+            #{userId}, #{totalEvaluations}, #{averageMannerScore},
+            #{totalLikes}, #{totalDislikes}, #{completedTravels}
+        )
+    </insert>
+
+    <!-- 사용자 매너 통계 업데이트 -->
+    <update id="updateUserMannerStats" parameterType="com.tour.project.dto.UserMannerStatsDTO">
+        UPDATE user_manner_stats
+        SET total_evaluations = #{totalEvaluations},
+            average_manner_score = #{averageMannerScore},
+            total_likes = #{totalLikes},
+            total_dislikes = #{totalDislikes},
+            completed_travels = #{completedTravels},
+            last_updated = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 사용자 매너 통계 삭제 -->
+    <delete id="deleteUserMannerStats" parameterType="String">
+        DELETE FROM user_manner_stats WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 매너 통계 재계산 -->
+    <update id="recalculateUserStats" parameterType="String">
+        INSERT INTO user_manner_stats (
+            user_id, total_evaluations, average_manner_score, 
+            total_likes, total_dislikes, completed_travels
+        ) VALUES (
+            #{userId},
+            (SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = #{userId}),
+            COALESCE((SELECT AVG(manner_score / 10.0) FROM manner_evaluation WHERE evaluated_id = #{userId}), 36.5),
+            (SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = #{userId} AND is_like = true),
+            (SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = #{userId} AND is_like = false),
+            (SELECT COUNT(DISTINCT tp.plan_id) 
+             FROM travel_plan tp
+             LEFT JOIN travel_join_requests tjr ON tp.plan_id = tjr.travel_plan_id
+             WHERE tp.plan_status = 'COMPLETED' 
+               AND (tp.plan_writer = #{userId} OR (tjr.requester_id = #{userId} AND tjr.status = 'APPROVED'))
+            )
+        )
+        ON DUPLICATE KEY UPDATE
+            total_evaluations = VALUES(total_evaluations),
+            average_manner_score = VALUES(average_manner_score),
+            total_likes = VALUES(total_likes),
+            total_dislikes = VALUES(total_dislikes),
+            completed_travels = VALUES(completed_travels),
+            last_updated = CURRENT_TIMESTAMP
+    </update>
+
+    <!-- 평가 통계 조회 -->
+    <select id="getTotalEvaluationsCount" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = #{userId}
+    </select>
+
+    <select id="getAverageMannerScore" parameterType="String" resultType="double">
+        SELECT COALESCE(AVG(manner_score / 10.0), 36.5) 
+        FROM manner_evaluation 
+        WHERE evaluated_id = #{userId}
+    </select>
+
+    <select id="getTotalLikesCount" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = #{userId} AND is_like = true
+    </select>
+
+    <select id="getTotalDislikesCount" parameterType="String" resultType="int">
+        SELECT COUNT(*) FROM manner_evaluation WHERE evaluated_id = #{userId} AND is_like = false
+    </select>
+
+    <select id="getCompletedTravelsCount" parameterType="String" resultType="int">
+        SELECT COUNT(DISTINCT tp.plan_id)
+        FROM travel_plan tp
+        LEFT JOIN travel_join_requests tjr ON tp.plan_id = tjr.travel_plan_id
+        WHERE tp.plan_status = 'COMPLETED'
+          AND (tp.plan_writer = #{userId} OR (tjr.requester_id = #{userId} AND tjr.status = 'APPROVED'))
+    </select>
+
+    <!-- 모바일 API용: 이미 평가했는지 확인 -->
+    <select id="hasAlreadyEvaluated" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM manner_evaluation
+        WHERE travel_plan_id = #{travelPlanId}
+          AND evaluator_id = #{evaluatorId}
+          AND evaluated_id = #{targetUserId}
+    </select>
+
+    <!-- 모바일 API용: 평가 안 한 대상 수 조회 -->
+    <select id="getPendingEvaluationCount" resultType="int">
+        SELECT COUNT(*) FROM (
+            SELECT tjr.requester_id as user_id
+            FROM travel_join_requests tjr
+            WHERE tjr.travel_plan_id = #{travelPlanId}
+              AND tjr.requester_id != #{evaluatorId}
+              AND tjr.status = 'APPROVED'
+            UNION
+            SELECT tp.plan_writer as user_id
+            FROM travel_plan tp
+            WHERE tp.plan_id = #{travelPlanId}
+              AND tp.plan_writer != #{evaluatorId}
+        ) AS all_participants
+        WHERE user_id NOT IN (
+            SELECT me.evaluated_id
+            FROM manner_evaluation me
+            WHERE me.travel_plan_id = #{travelPlanId}
+              AND me.evaluator_id = #{evaluatorId}
+        )
+    </select>
+
+</mapper>

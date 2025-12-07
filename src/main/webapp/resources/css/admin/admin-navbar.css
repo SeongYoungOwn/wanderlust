@@ -1,0 +1,305 @@
+/* ==========================================================================
+   Admin Navigation Bar - Modern Professional Design
+   ========================================================================== */
+
+/* === Variables === */
+:root {
+    --admin-nav-height: 56px;
+    --admin-nav-bg: #ffffff;
+    --admin-nav-border: #e5e7eb;
+    --admin-nav-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --admin-text-primary: #111827;
+    --admin-text-secondary: #6b7280;
+    --admin-accent: #3b82f6;
+    --admin-accent-hover: #2563eb;
+    --admin-accent-light: #eff6ff;
+    --admin-danger: #ef4444;
+}
+
+/* === Navigation Container === */
+.admin-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--admin-nav-height);
+    background: var(--admin-nav-bg);
+    border-bottom: 1px solid var(--admin-nav-border);
+    box-shadow: var(--admin-nav-shadow);
+    z-index: 1000;
+}
+
+.admin-nav-container {
+    height: 100%;
+    max-width: 100%;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* === Brand Section === */
+.admin-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    flex-shrink: 0;
+}
+
+.admin-nav-logo {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.125rem;
+}
+
+.admin-nav-title {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-nav-title h1 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--admin-text-primary);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.admin-nav-title span {
+    font-size: 0.75rem;
+    color: var(--admin-text-secondary);
+    margin-top: 2px;
+}
+
+/* === Menu Section === */
+.admin-nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    margin: 0 2rem;
+}
+
+.admin-nav-item {
+    position: relative;
+}
+
+.admin-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border-radius: 6px;
+    color: var(--admin-text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.admin-nav-link:hover {
+    color: var(--admin-text-primary);
+    background: #f9fafb;
+}
+
+.admin-nav-link.active {
+    color: var(--admin-accent);
+    background: var(--admin-accent-light);
+}
+
+.admin-nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 1rem);
+    height: 2px;
+    background: var(--admin-accent);
+    border-radius: 2px 2px 0 0;
+}
+
+.admin-nav-icon {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+.admin-nav-link:hover .admin-nav-icon,
+.admin-nav-link.active .admin-nav-icon {
+    opacity: 1;
+}
+
+/* === Badge === */
+.admin-nav-badge {
+    background: var(--admin-danger);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    margin-left: 0.25rem;
+}
+
+/* === Separator === */
+.admin-nav-separator {
+    width: 1px;
+    height: 24px;
+    background: var(--admin-nav-border);
+    margin: 0 0.5rem;
+}
+
+/* === Actions Section === */
+.admin-nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.admin-nav-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.admin-nav-user:hover {
+    background: #f9fafb;
+}
+
+.admin-nav-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.admin-nav-user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-nav-username {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--admin-text-primary);
+    line-height: 1.2;
+}
+
+.admin-nav-role {
+    font-size: 0.75rem;
+    color: var(--admin-text-secondary);
+}
+
+.admin-nav-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-nav-btn-secondary {
+    color: var(--admin-text-secondary);
+    background: #f3f4f6;
+    border: 1px solid var(--admin-nav-border);
+}
+
+.admin-nav-btn-secondary:hover {
+    background: #e5e7eb;
+    color: var(--admin-text-primary);
+}
+
+/* === Main Content Offset === */
+.admin-content {
+    margin-top: var(--admin-nav-height);
+    min-height: calc(100vh - var(--admin-nav-height));
+    background: #f9fafb;
+}
+
+/* === Mobile Menu Toggle === */
+.admin-nav-mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--admin-text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* === Responsive Design === */
+@media (max-width: 1024px) {
+    .admin-nav-menu {
+        margin: 0 1rem;
+    }
+
+    .admin-nav-user-info {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-nav-mobile-toggle {
+        display: block;
+    }
+
+    .admin-nav-menu {
+        position: fixed;
+        top: var(--admin-nav-height);
+        left: 0;
+        right: 0;
+        background: white;
+        border-bottom: 1px solid var(--admin-nav-border);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.5rem 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: none;
+    }
+
+    .admin-nav-menu.show {
+        display: flex;
+    }
+
+    .admin-nav-separator {
+        width: 100%;
+        height: 1px;
+        margin: 0.5rem 0;
+    }
+
+    .admin-nav-link {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .admin-nav-actions {
+        gap: 0.5rem;
+    }
+
+    .admin-nav-btn span {
+        display: none;
+    }
+}

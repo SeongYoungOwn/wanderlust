@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tour.project.dao.TravelMbtiDAO">
+
+    <!-- 질문 관련 SQL -->
+    <select id="getAllQuestions" resultType="TravelMbtiQuestionDTO">
+        SELECT question_id, question_text, option_a, option_b, dimension, question_order
+        FROM travel_mbti_questions
+        ORDER BY question_order ASC
+    </select>
+
+    <!-- 결과 관련 SQL -->
+    <select id="getResultByType" parameterType="String" resultType="TravelMbtiResultDTO">
+        SELECT mbti_type, type_name, type_description, travel_style, 
+               recommended_destinations, travel_tips, best_travel_season
+        FROM travel_mbti_results
+        WHERE mbti_type = #{mbtiType}
+    </select>
+
+    <select id="getAllResults" resultType="TravelMbtiResultDTO">
+        SELECT mbti_type, type_name, type_description, travel_style, 
+               recommended_destinations, travel_tips, best_travel_season
+        FROM travel_mbti_results
+        ORDER BY mbti_type ASC
+    </select>
+
+    <!-- 사용자 MBTI 기록 관련 SQL -->
+    <insert id="insertUserMbti" parameterType="UserTravelMbtiDTO">
+        INSERT INTO user_travel_mbti (user_id, mbti_type, answers)
+        VALUES (#{userId}, #{mbtiType}, #{answers})
+    </insert>
+
+    <select id="getLatestUserMbti" parameterType="String" resultType="UserTravelMbtiDTO">
+        SELECT id, user_id, mbti_type, test_date, answers
+        FROM user_travel_mbti
+        WHERE user_id = #{userId}
+        ORDER BY test_date DESC
+        LIMIT 1
+    </select>
+
+    <select id="getUserMbtiHistory" parameterType="String" resultType="UserTravelMbtiDTO">
+        SELECT id, user_id, mbti_type, test_date, answers
+        FROM user_travel_mbti
+        WHERE user_id = #{userId}
+        ORDER BY test_date DESC
+    </select>
+
+    <!-- 통계 관련 SQL -->
+    <select id="getTotalTestCount" resultType="int">
+        SELECT COUNT(*) FROM user_travel_mbti
+    </select>
+
+    <select id="getPopularMbtiTypes" resultType="String">
+        SELECT mbti_type
+        FROM user_travel_mbti
+        GROUP BY mbti_type
+        ORDER BY COUNT(*) DESC
+        LIMIT 5
+    </select>
+
+    <!-- 매칭 사용자 관련 SQL - 사용자의 최신 MBTI만 반환 -->
+    <select id="getUsersByMbtiType" parameterType="String" resultType="MbtiMatchUserDTO">
+        SELECT
+            utm.user_id as userId,
+            m.user_name as userName,
+            utm.mbti_type as mbtiType,
+            utm.test_date as testDate,
+            m.profile_image as profileImage,
+            m.bio,
+            m.age,
+            m.gender
+        FROM user_travel_mbti utm
+        JOIN member m ON utm.user_id = m.user_id
+        WHERE utm.mbti_type = #{mbtiType}
+          AND (m.account_status IS NULL OR m.account_status != 'DELETED')
+          AND utm.id = (
+              SELECT MAX(u2.id) FROM user_travel_mbti u2 WHERE u2.user_id = utm.user_id
+          )
+        ORDER BY utm.test_date DESC
+        LIMIT 10
+    </select>
+
+</mapper>

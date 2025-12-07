@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tour.project.dao.AiModelReviewDAO">
+
+    <!-- 리뷰 작성 -->
+    <insert id="insertReview" parameterType="AiModelReviewDTO" useGeneratedKeys="true" keyProperty="reviewId">
+        INSERT INTO ai_model_reviews (model_id, user_id, rating, review_title, review_content, is_recommended)
+        VALUES (#{modelId}, #{userId}, #{rating}, #{reviewTitle}, #{reviewContent}, #{isRecommended})
+    </insert>
+
+    <!-- 특정 모델의 모든 리뷰 조회 (사용자 정보 포함) -->
+    <select id="getReviewsByModelId" resultType="AiModelReviewDTO">
+        SELECT 
+            r.review_id,
+            r.model_id,
+            r.user_id,
+            m.user_name,
+            m.profile_image as userProfileImage,
+            r.rating,
+            r.review_title,
+            r.review_content,
+            r.helpful_count,
+            r.is_recommended,
+            r.created_at,
+            r.updated_at,
+            CASE WHEN h.helpful_id IS NOT NULL THEN true ELSE false END as isHelpedByCurrentUser
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        LEFT JOIN ai_model_review_helpful h ON r.review_id = h.review_id AND h.user_id = #{currentUserId}
+        WHERE r.model_id = #{modelId}
+          AND (m.account_status IS NULL OR m.account_status != 'DELETED')
+        ORDER BY r.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 특정 모델의 리뷰 총 개수 -->
+    <select id="getReviewCountByModelId" resultType="int">
+        SELECT COUNT(*)
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        WHERE r.model_id = #{modelId}
+          AND (m.account_status IS NULL OR m.account_status != 'DELETED')
+    </select>
+
+    <!-- 특정 모델의 평점 통계 -->
+    <select id="getReviewStatsByModelId" resultType="map">
+        SELECT 
+            COUNT(*) as totalReviews,
+            COALESCE(AVG(rating), 0) as averageRating,
+            COALESCE(SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END), 0) as rating5Count,
+            COALESCE(SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END), 0) as rating4Count,
+            COALESCE(SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END), 0) as rating3Count,
+            COALESCE(SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END), 0) as rating2Count,
+            COALESCE(SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END), 0) as rating1Count,
+            COALESCE(SUM(CASE WHEN is_recommended = true THEN 1 ELSE 0 END), 0) as recommendedCount
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        WHERE r.model_id = #{modelId}
+          AND (m.account_status IS NULL OR m.account_status != 'DELETED')
+    </select>
+
+    <!-- 리뷰 상세 조회 -->
+    <select id="getReviewById" resultType="AiModelReviewDTO">
+        SELECT 
+            r.review_id,
+            r.model_id,
+            r.user_id,
+            m.user_name,
+            m.profile_image as userProfileImage,
+            r.rating,
+            r.review_title,
+            r.review_content,
+            r.helpful_count,
+            r.is_recommended,
+            r.created_at,
+            r.updated_at,
+            CASE WHEN h.helpful_id IS NOT NULL THEN true ELSE false END as isHelpedByCurrentUser
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        LEFT JOIN ai_model_review_helpful h ON r.review_id = h.review_id AND h.user_id = #{currentUserId}
+        WHERE r.review_id = #{reviewId}
+          AND (m.account_status IS NULL OR m.account_status != 'DELETED')
+    </select>
+
+    <!-- 리뷰 수정 -->
+    <update id="updateReview" parameterType="AiModelReviewDTO">
+        UPDATE ai_model_reviews 
+        SET rating = #{rating}, 
+            review_title = #{reviewTitle}, 
+            review_content = #{reviewContent}, 
+            is_recommended = #{isRecommended},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE review_id = #{reviewId} AND user_id = #{userId}
+    </update>
+
+    <!-- 리뷰 삭제 -->
+    <delete id="deleteReview">
+        DELETE FROM ai_model_reviews 
+        WHERE review_id = #{reviewId} AND user_id = #{userId}
+    </delete>
+
+    <!-- 도움됨 추가 -->
+    <insert id="insertHelpful">
+        INSERT IGNORE INTO ai_model_review_helpful (review_id, user_id)
+        VALUES (#{reviewId}, #{userId})
+    </insert>
+
+    <!-- 도움됨 취소 -->
+    <delete id="deleteHelpful">
+        DELETE FROM ai_model_review_helpful 
+        WHERE review_id = #{reviewId} AND user_id = #{userId}
+    </delete>
+
+    <!-- 도움됨 개수 업데이트 -->
+    <update id="updateHelpfulCount">
+        UPDATE ai_model_reviews 
+        SET helpful_count = (
+            SELECT COUNT(*) 
+            FROM ai_model_review_helpful 
+            WHERE review_id = #{reviewId}
+        )
+        WHERE review_id = #{reviewId}
+    </update>
+
+    <!-- 사용자가 특정 리뷰에 도움됨을 눌렀는지 확인 -->
+    <select id="isHelpedByUser" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM ai_model_review_helpful
+        WHERE review_id = #{reviewId} AND user_id = #{userId}
+    </select>
+
+    <!-- 사용자가 특정 모델에 리뷰를 작성했는지 확인 -->
+    <select id="hasUserReviewedModel" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM ai_model_reviews
+        WHERE model_id = #{modelId} AND user_id = #{userId}
+    </select>
+
+    <!-- 사용자의 모든 리뷰 조회 -->
+    <select id="getReviewsByUserId" resultType="AiModelReviewDTO">
+        SELECT 
+            r.review_id,
+            r.model_id,
+            r.user_id,
+            m.user_name,
+            m.profile_image as userProfileImage,
+            r.rating,
+            r.review_title,
+            r.review_content,
+            r.helpful_count,
+            r.is_recommended,
+            r.created_at,
+            r.updated_at
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        WHERE r.user_id = #{userId}
+          AND (m.account_status IS NULL OR m.account_status != 'DELETED')
+        ORDER BY r.created_at DESC
+    </select>
+
+    <!-- 최근 리뷰 조회 (홈페이지용) -->
+    <select id="getRecentReviews" resultType="AiModelReviewDTO">
+        SELECT 
+            r.review_id,
+            r.model_id,
+            r.user_id,
+            m.user_name,
+            m.profile_image as userProfileImage,
+            r.rating,
+            r.review_title,
+            r.review_content,
+            r.helpful_count,
+            r.is_recommended,
+            r.created_at,
+            r.updated_at
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        WHERE (m.account_status IS NULL OR m.account_status != 'DELETED')
+        ORDER BY r.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 모든 AI 모델의 리뷰 통합 조회 (페이징, 정렬, 필터링) -->
+    <select id="getAllReviews" resultType="AiModelReviewDTO">
+        SELECT 
+            r.review_id,
+            r.model_id,
+            r.user_id,
+            m.user_name,
+            m.profile_image as userProfileImage,
+            r.rating,
+            r.review_title,
+            r.review_content,
+            r.helpful_count,
+            r.is_recommended,
+            r.created_at,
+            r.updated_at,
+            CASE WHEN h.helpful_id IS NOT NULL THEN true ELSE false END as isHelpedByCurrentUser
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        LEFT JOIN ai_model_review_helpful h ON r.review_id = h.review_id AND h.user_id = #{currentUserId}
+        WHERE (m.account_status IS NULL OR m.account_status != 'DELETED')
+        <if test="rating != null">
+            AND r.rating = #{rating}
+        </if>
+        <choose>
+            <when test="sort == 'helpful'">
+                ORDER BY r.helpful_count DESC, r.created_at DESC
+            </when>
+            <when test="sort == 'rating_high'">
+                ORDER BY r.rating DESC, r.created_at DESC
+            </when>
+            <when test="sort == 'rating_low'">
+                ORDER BY r.rating ASC, r.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY r.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 전체 리뷰 총 개수 (필터링 적용) -->
+    <select id="getTotalReviewCount" resultType="int">
+        SELECT COUNT(*)
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        WHERE (m.account_status IS NULL OR m.account_status != 'DELETED')
+        <if test="rating != null">
+            AND r.rating = #{rating}
+        </if>
+    </select>
+
+    <!-- 전체 평점 통계 -->
+    <select id="getAllReviewStats" resultType="map">
+        SELECT 
+            COUNT(*) as totalReviews,
+            COALESCE(AVG(rating), 0) as averageRating,
+            COALESCE(SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END), 0) as rating5Count,
+            COALESCE(SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END), 0) as rating4Count,
+            COALESCE(SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END), 0) as rating3Count,
+            COALESCE(SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END), 0) as rating2Count,
+            COALESCE(SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END), 0) as rating1Count,
+            COALESCE(SUM(CASE WHEN is_recommended = true THEN 1 ELSE 0 END), 0) as recommendedCount
+        FROM ai_model_reviews r
+        JOIN member m ON r.user_id = m.user_id
+        WHERE (m.account_status IS NULL OR m.account_status != 'DELETED')
+    </select>
+
+</mapper>
