@@ -446,50 +446,14 @@
                                                     </small>
                                                 </div>
                                                 <c:if test="${not empty sessionScope.loginUser && sessionScope.loginUser.userId eq comment.commentWriter}">
-                                                    <div class="dropdown">
-                                                        <button class="btn btn-sm btn-light dropdown-toggle"
-                                                                type="button"
-                                                                data-bs-toggle="dropdown"
-                                                                aria-expanded="false">
-                                                            <i class="fas fa-ellipsis-v"></i>
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                            <li>
-                                                                <a class="dropdown-item" href="javascript:void(0);"
-                                                                   onclick="editComment(${comment.commentId}, this); return false;"
-                                                                   data-content="${fn:escapeXml(comment.commentContent)}">
-                                                                    <i class="fas fa-edit me-2"></i>수정
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
-                                                                   onclick="deleteComment(${comment.commentId}); return false;">
-                                                                    <i class="fas fa-trash me-2"></i>삭제
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
+                                                    <button class="btn btn-sm btn-outline-danger"
+                                                            onclick="deleteComment(${comment.commentId})">
+                                                        <i class="fas fa-trash"></i> 삭제
+                                                    </button>
                                                 </c:if>
                                             </div>
-                                            <div class="comment-content mt-2" id="content-${comment.commentId}">
+                                            <div class="comment-content mt-2">
                                                 <p class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;">${comment.commentContent}</p>
-                                            </div>
-                                            <!-- 수정 폼 -->
-                                            <div class="comment-edit-form" id="edit-form-${comment.commentId}"
-                                                 style="display: none;">
-                                                <form action="${pageContext.request.contextPath}/comment/edit/${comment.commentId}"
-                                                      method="post">
-                                                    <input type="hidden" name="boardId" value="${board.boardId}">
-                                                    <div class="mb-2">
-                                                        <textarea class="form-control" name="commentContent" rows="3"
-                                                                  maxlength="1000" required></textarea>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <button type="button" class="btn btn-sm btn-secondary me-2"
-                                                                onclick="cancelEdit(${comment.commentId})">취소</button>
-                                                        <button type="submit" class="btn btn-sm btn-primary">수정 완료</button>
-                                                    </div>
-                                                </form>
                                             </div>
                                         </div>
                                     </div>
@@ -674,22 +638,7 @@
             });
         });
 
-        // 댓글 수정
-        function editComment(commentId, element) {
-            const content = element.getAttribute('data-content');
-            document.getElementById('content-' + commentId).style.display = 'none';
-            document.getElementById('edit-form-' + commentId).style.display = 'block';
-            const textarea = document.querySelector('#edit-form-' + commentId + ' textarea');
-            if (textarea && content) {
-                textarea.value = content;
-            }
-        }
-
-        function cancelEdit(commentId) {
-            document.getElementById('edit-form-' + commentId).style.display = 'none';
-            document.getElementById('content-' + commentId).style.display = 'block';
-        }
-
+        // 댓글 삭제
         function deleteComment(commentId) {
             if (confirm('정말 이 댓글을 삭제하시겠습니까?')) {
                 const form = document.createElement('form');
