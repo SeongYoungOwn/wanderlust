@@ -23,7 +23,12 @@ public class ClaudeRequest {
      * 사용할 Claude 모델
      */
     private String model;
-    
+
+    /**
+     * 시스템 프롬프트
+     */
+    private String system;
+
     /**
      * 메시지 배열
      */
