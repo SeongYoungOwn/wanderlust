@@ -96,6 +96,8 @@
         .author-avatar {
             width: 45px;
             height: 45px;
+            min-width: 45px;
+            min-height: 45px;
             border-radius: 50%;
             background: var(--primary-gradient);
             display: flex;
@@ -103,6 +105,11 @@
             justify-content: center;
             color: white;
             font-weight: 600;
+            flex-shrink: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         /* 콘텐츠 섹션 */
@@ -441,20 +448,22 @@
                                                 <c:if test="${not empty sessionScope.loginUser && sessionScope.loginUser.userId eq comment.commentWriter}">
                                                     <div class="dropdown">
                                                         <button class="btn btn-sm btn-light dropdown-toggle"
-                                                                data-bs-toggle="dropdown">
+                                                                type="button"
+                                                                data-bs-toggle="dropdown"
+                                                                aria-expanded="false">
                                                             <i class="fas fa-ellipsis-v"></i>
                                                         </button>
-                                                        <ul class="dropdown-menu">
+                                                        <ul class="dropdown-menu dropdown-menu-end">
                                                             <li>
-                                                                <a class="dropdown-item" href="#"
-                                                                   onclick="editComment(${comment.commentId}, this)"
+                                                                <a class="dropdown-item" href="javascript:void(0);"
+                                                                   onclick="editComment(${comment.commentId}, this); return false;"
                                                                    data-content="${fn:escapeXml(comment.commentContent)}">
                                                                     <i class="fas fa-edit me-2"></i>수정
                                                                 </a>
                                                             </li>
                                                             <li>
-                                                                <a class="dropdown-item text-danger" href="#"
-                                                                   onclick="deleteComment(${comment.commentId})">
+                                                                <a class="dropdown-item text-danger" href="javascript:void(0);"
+                                                                   onclick="deleteComment(${comment.commentId}); return false;">
                                                                     <i class="fas fa-trash me-2"></i>삭제
                                                                 </a>
                                                             </li>
@@ -463,7 +472,7 @@
                                                 </c:if>
                                             </div>
                                             <div class="comment-content mt-2" id="content-${comment.commentId}">
-                                                <p class="mb-0">${comment.commentContent}</p>
+                                                <p class="mb-0" style="white-space: pre-wrap; word-wrap: break-word;">${comment.commentContent}</p>
                                             </div>
                                             <!-- 수정 폼 -->
                                             <div class="comment-edit-form" id="edit-form-${comment.commentId}"
