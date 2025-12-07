@@ -126,11 +126,11 @@
     </select>
 
     <!-- 히스토리 로딩을 위한 새로운 쿼리들 -->
-    
+
     <!-- 채팅방의 최근 메시지 조회 (페이징) - OFFSET 방식, 시간순 정렬 -->
     <select id="getRecentMessages" parameterType="map" resultMap="chatMessageResultMap">
         SELECT * FROM (
-            SELECT 
+            SELECT
                 message_id,
                 travel_plan_id,
                 sender_id,
@@ -140,7 +140,10 @@
                 sent_time,
                 file_name,
                 file_path,
-                file_size
+                file_size,
+                original_filename,
+                file_type,
+                file_size_bytes
             FROM chat_messages
             WHERE travel_plan_id = #{travelPlanId}
             ORDER BY sent_time DESC
@@ -179,7 +182,7 @@
     <!-- 채팅방의 최근 N개 메시지 조회 (시간순) -->
     <select id="getLatestMessages" parameterType="map" resultMap="chatMessageResultMap">
         SELECT * FROM (
-            SELECT 
+            SELECT
                 message_id,
                 travel_plan_id,
                 sender_id,
@@ -189,7 +192,10 @@
                 sent_time,
                 file_name,
                 file_path,
-                file_size
+                file_size,
+                original_filename,
+                file_type,
+                file_size_bytes
             FROM chat_messages
             WHERE travel_plan_id = #{travelPlanId}
             ORDER BY sent_time DESC

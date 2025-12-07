@@ -1384,13 +1384,9 @@ public class ChatController {
                 "                \n" +
                 "                // 파일 타입에 따라 다른 표시\n" +
                 "                if (message.fileType && message.fileType.startsWith('image/')) {\n" +
-                "                    // 이미지 파일\n" +
+                "                    // 이미지 파일 - 이미지만 깔끔하게 표시\n" +
                 "                    content += '<div class=\"file-message\">';\n" +
                 "                    content += '<img src=\"' + imgSrc + '\" class=\"uploaded-image\" onclick=\"window.open(this.src)\" alt=\"' + displayName + '\">';\n" +
-                "                    content += '<div class=\"file-info\">';\n" +
-                "                    content += '<div class=\"file-name\">' + displayName + '</div>';\n" +
-                "                    content += '<div class=\"file-size\">' + formatFileSize(message.fileSizeBytes) + '</div>';\n" +
-                "                    content += '</div>';\n" +
                 "                    content += '</div>';\n" +
                 "                } else {\n" +
                 "                    // 일반 파일\n" +
