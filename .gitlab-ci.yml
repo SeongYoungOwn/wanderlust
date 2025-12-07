@@ -46,12 +46,9 @@ deploy:production:
     - echo "Preparing deployment files..."
     - mkdir -p $DEPLOY_DIR/webapps
     - cp docker-compose.yml $DEPLOY_DIR/
-    - |
-      cat > $DEPLOY_DIR/.env << EOF
-      DB_USERNAME=${DB_USERNAME}
-      DB_PASSWORD=${DB_PASSWORD}
-      CLAUDE_API_KEY=${CLAUDE_API_KEY}
-      EOF
+    - echo "DB_USERNAME=${DB_USERNAME}" > $DEPLOY_DIR/.env
+    - echo "DB_PASSWORD=${DB_PASSWORD}" >> $DEPLOY_DIR/.env
+    - echo "CLAUDE_API_KEY=${CLAUDE_API_KEY}" >> $DEPLOY_DIR/.env
     - chmod 600 $DEPLOY_DIR/.env
 
     # Deploy WAR file (Tomcat auto-deployment)
