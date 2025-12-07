@@ -423,6 +423,8 @@ public class ChatController {
                 "            padding: 15px; \\n" +
                 "            margin-bottom: 15px; \\n" +
                 "            background: #fafafa;\\n" +
+                "            display: flex;\\n" +
+                "            flex-direction: column;\\n" +
                 "        }\\n" +
                 "        .message { \\n" +
                 "            margin-bottom: 10px; \\n" +
@@ -430,11 +432,13 @@ public class ChatController {
                 "            background: #e9ecef; \\n" +
                 "            border-radius: 15px; \\n" +
                 "            max-width: 70%; \\n" +
+                "            width: fit-content; \\n" +
+                "            align-self: flex-start;\\n" +
                 "        }\\n" +
                 "        .message.own { \\n" +
                 "            background: #4a90e2; \\n" +
                 "            color: white; \\n" +
-                "            margin-left: auto; \\n" +
+                "            align-self: flex-end; \\n" +
                 "        }\\n" +
                 "        .system-message { \\n" +
                 "            text-align: center; \\n" +
@@ -960,6 +964,8 @@ public class ChatController {
                 "            padding: 20px;\n" +
                 "            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);\n" +
                 "            border-radius: 0 0 20px 20px;\n" +
+                "            display: flex;\n" +
+                "            flex-direction: column;\n" +
                 "        }\n" +
                 "        .message {\n" +
                 "            margin-bottom: 15px;\n" +
@@ -967,11 +973,12 @@ public class ChatController {
                 "            border-radius: 18px;\n" +
                 "            max-width: 75%;\n" +
                 "            width: fit-content;\n" +
+                "            align-self: flex-start;\n" +
                 "        }\n" +
                 "        .message.own {\n" +
                 "            background: var(--gradient-primary);\n" +
                 "            color: white;\n" +
-                "            margin-left: auto;\n" +
+                "            align-self: flex-end;\n" +
                 "        }\n" +
                 "        .message.other {\n" +
                 "            background: white;\n" +
