@@ -2672,9 +2672,8 @@ public class MobileApiController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // 4. 이미지 파일을 /uploads/chat/ 폴더에 저장 (파일명은 UUID로)
-            String uploadPath = System.getProperty("user.home") + "/uploads/";
-            String chatUploadPath = uploadPath + "chat/";
+            // 4. 이미지 파일을 uploads/chat/ 폴더에 저장 (파일명은 UUID로)
+            String chatUploadPath = "uploads/chat/";
             File uploadDir = new File(chatUploadPath);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
@@ -2692,7 +2691,7 @@ public class MobileApiController {
 
             String fileUrl = "/uploads/chat/" + uniqueFilename;
 
-            // 5. 저장된 파일 경로를 content로 해서 채팅 메시지(type: IMAGE)를 DB에 저장
+            // 5. 채팅 메시지 저장 (type: IMAGE, filePath: /uploads/chat/xxx.jpg)
             ChatMessageDTO chatMessage = new ChatMessageDTO();
             chatMessage.setTravelPlanId(travelPlanId);
             chatMessage.setSenderId(userId);
