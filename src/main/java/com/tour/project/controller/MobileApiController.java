@@ -42,6 +42,18 @@ import com.tour.project.dao.ChatMessageDAO;
 import com.tour.project.dto.ChatMessageDTO;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import com.tour.project.dto.TravelParticipantDTO;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
+import java.util.ArrayList;
 
 /**
  * 모바일 최적화 API 컨트롤러
@@ -73,6 +85,12 @@ public class MobileApiController {
     private final CommentDAO commentDAO;
     private final MessageDAO messageDAO;
     private final ChatMessageDAO chatMessageDAO;
+
+    @Autowired(required = false)
+    private SimpMessageSendingOperations messagingTemplate;
+
+    @Value("${upload.path:E:/tour-project/uploads/}")
+    private String uploadPath;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest, HttpSession session) {
@@ -2606,6 +2624,284 @@ public class MobileApiController {
             response.put("success", false);
             response.put("message", "새 메시지를 불러올 수 없습니다.");
             response.put("messages", new java.util.ArrayList<>());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * 채팅방 이미지 업로드 API (모바일용)
+     * POST /api/mobile/chat/upload-image
+     */
+    @PostMapping("/chat/upload-image")
+    public ResponseEntity<Map<String, Object>> uploadChatImage(
+            @RequestParam("travelPlanId") int travelPlanId,
+            @RequestParam("file") MultipartFile file,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        MemberDTO loginUser = (MemberDTO) session.getAttribute("loginUser");
+
+        // 1. 로그인 세션 확인
+        if (loginUser == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        try {
+            // 2. 해당 여행계획의 참여자인지 확인
+            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById(travelPlanId);
+            if (plan == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 여행계획입니다.");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            String userId = loginUser.getUserId();
+            boolean isWriter = userId.equals(plan.getPlanWriter());
+            boolean isParticipant = travelDAO.isUserJoined(Long.valueOf(travelPlanId), userId);
+
+            if (!isWriter && !isParticipant) {
+                response.put("success", false);
+                response.put("message", "채팅방에 참여할 권한이 없습니다.");
+                return ResponseEntity.status(403).body(response);
+            }
+
+            // 3. 파일 유효성 검사
+            if (file.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "파일이 비어있습니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 이미지 파일 타입 확인
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                response.put("success", false);
+                response.put("message", "이미지 파일만 업로드 가능합니다.");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 4. 이미지 파일을 /uploads/chat/ 폴더에 저장 (파일명은 UUID로)
+            String chatUploadPath = uploadPath + "chat/";
+            File uploadDir = new File(chatUploadPath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
+
+            Path filePath = Paths.get(chatUploadPath + uniqueFilename);
+            Files.write(filePath, file.getBytes());
+
+            // 파일 URL 생성
+            String fileUrl = "/chat/file/" + uniqueFilename;
+
+            // 5. 저장된 파일 경로를 content로 해서 채팅 메시지(type: IMAGE)를 DB에 저장
+            ChatMessageDTO chatMessage = new ChatMessageDTO();
+            chatMessage.setTravelPlanId(travelPlanId);
+            chatMessage.setSenderId(userId);
+            chatMessage.setSenderName(loginUser.getUserName());
+            chatMessage.setContent(fileUrl);
+            chatMessage.setType(ChatMessageDTO.MessageType.IMAGE);
+            chatMessage.setTimestamp(LocalDateTime.now());
+            chatMessage.setFileName(uniqueFilename);
+            chatMessage.setFilePath(fileUrl);
+            chatMessage.setOriginalFilename(originalFilename);
+            chatMessage.setFileType(contentType);
+            chatMessage.setFileSizeBytes(file.getSize());
+
+            // 파일 크기를 읽기 좋은 형식으로 변환
+            long sizeBytes = file.getSize();
+            String fileSize;
+            if (sizeBytes < 1024) {
+                fileSize = sizeBytes + " B";
+            } else if (sizeBytes < 1024 * 1024) {
+                fileSize = String.format("%.1f KB", sizeBytes / 1024.0);
+            } else {
+                fileSize = String.format("%.1f MB", sizeBytes / (1024.0 * 1024.0));
+            }
+            chatMessage.setFileSize(fileSize);
+
+            // DB에 메시지 저장
+            int result = chatMessageDAO.insertChatMessage(chatMessage);
+
+            if (result > 0) {
+                // 6. WebSocket으로 채팅방 참여자들에게 메시지 브로드캐스트
+                if (messagingTemplate != null) {
+                    try {
+                        messagingTemplate.convertAndSend("/topic/chat/" + travelPlanId, chatMessage);
+                        log.debug("WebSocket 브로드캐스트 완료 - planId: {}", travelPlanId);
+                    } catch (Exception e) {
+                        log.warn("WebSocket 브로드캐스트 실패 (폴링으로 대체): {}", e.getMessage());
+                    }
+                }
+
+                response.put("success", true);
+                response.put("fileUrl", fileUrl);
+                response.put("message", chatMessage);
+
+                log.info("채팅 이미지 업로드 성공 - planId: {}, userId: {}, file: {}",
+                        travelPlanId, userId, uniqueFilename);
+                return ResponseEntity.ok(response);
+            } else {
+                // 파일은 업로드됐지만 DB 저장 실패 - 파일 삭제
+                Files.deleteIfExists(filePath);
+                response.put("success", false);
+                response.put("message", "메시지 저장에 실패했습니다.");
+                return ResponseEntity.status(500).body(response);
+            }
+
+        } catch (IOException e) {
+            log.error("파일 업로드 실패", e);
+            response.put("success", false);
+            response.put("message", "파일 업로드 중 오류가 발생했습니다.");
+            return ResponseEntity.status(500).body(response);
+        } catch (Exception e) {
+            log.error("채팅 이미지 업로드 실패", e);
+            response.put("success", false);
+            response.put("message", "이미지 업로드에 실패했습니다.");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * 채팅방 참여자 목록 조회 API (모바일용)
+     * GET /api/mobile/chat/participants/{travelPlanId}
+     */
+    @GetMapping("/chat/participants/{travelPlanId}")
+    public ResponseEntity<Map<String, Object>> getChatParticipants(
+            @PathVariable int travelPlanId,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        MemberDTO loginUser = (MemberDTO) session.getAttribute("loginUser");
+
+        if (loginUser == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        try {
+            // 여행계획 조회
+            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById(travelPlanId);
+            if (plan == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 여행계획입니다.");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // 참여자 목록 조회
+            List<TravelParticipantDTO> participants = travelDAO.getParticipantsByTravelId(Long.valueOf(travelPlanId));
+
+            // 작성자 정보 추가
+            MemberDTO writer = memberDAO.getMember(plan.getPlanWriter());
+
+            // 참여자 정보를 맵 형태로 변환
+            List<Map<String, Object>> participantList = new ArrayList<>();
+
+            // 작성자를 첫 번째로 추가
+            if (writer != null) {
+                Map<String, Object> writerInfo = new HashMap<>();
+                writerInfo.put("userId", writer.getUserId());
+                writerInfo.put("userName", writer.getUserName());
+                writerInfo.put("profileImage", writer.getUserProfileImage());
+                writerInfo.put("isWriter", true);
+                participantList.add(writerInfo);
+            }
+
+            // 나머지 참여자 추가 (작성자 제외)
+            if (participants != null) {
+                for (TravelParticipantDTO participant : participants) {
+                    if (!participant.getUserId().equals(plan.getPlanWriter())) {
+                        MemberDTO member = memberDAO.getMember(participant.getUserId());
+                        if (member != null) {
+                            Map<String, Object> participantInfo = new HashMap<>();
+                            participantInfo.put("userId", member.getUserId());
+                            participantInfo.put("userName", member.getUserName());
+                            participantInfo.put("profileImage", member.getUserProfileImage());
+                            participantInfo.put("isWriter", false);
+                            participantList.add(participantInfo);
+                        }
+                    }
+                }
+            }
+
+            response.put("success", true);
+            response.put("participants", participantList);
+            response.put("count", participantList.size());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("참여자 목록 조회 실패", e);
+            response.put("success", false);
+            response.put("message", "참여자 목록을 불러올 수 없습니다.");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * 채팅방 관련 게시글(여행계획) 정보 조회 API (모바일용)
+     * GET /api/mobile/chat/plan-info/{travelPlanId}
+     */
+    @GetMapping("/chat/plan-info/{travelPlanId}")
+    public ResponseEntity<Map<String, Object>> getChatPlanInfo(
+            @PathVariable int travelPlanId,
+            HttpSession session) {
+
+        Map<String, Object> response = new HashMap<>();
+        MemberDTO loginUser = (MemberDTO) session.getAttribute("loginUser");
+
+        if (loginUser == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        try {
+            // 여행계획 조회
+            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById(travelPlanId);
+            if (plan == null) {
+                response.put("success", false);
+                response.put("message", "존재하지 않는 여행계획입니다.");
+                return ResponseEntity.status(404).body(response);
+            }
+
+            // 작성자 정보 조회
+            MemberDTO writer = memberDAO.getMember(plan.getPlanWriter());
+
+            // 응답 데이터 구성
+            Map<String, Object> planInfo = new HashMap<>();
+            planInfo.put("planId", plan.getPlanId());
+            planInfo.put("planTitle", plan.getPlanTitle());
+            planInfo.put("planDestination", plan.getPlanDestination());
+            planInfo.put("planContent", plan.getPlanContent());
+            planInfo.put("planWriter", plan.getPlanWriter());
+            planInfo.put("writerName", writer != null ? writer.getUserName() : plan.getPlanWriter());
+            planInfo.put("writerProfileImage", writer != null ? writer.getUserProfileImage() : null);
+            planInfo.put("planStartDate", plan.getPlanStartDate());
+            planInfo.put("planEndDate", plan.getPlanEndDate());
+            planInfo.put("planMaxParticipants", plan.getPlanMaxParticipants());
+            planInfo.put("planCurrentParticipants", plan.getPlanCurrentParticipants());
+            planInfo.put("planStatus", plan.getPlanStatus());
+            planInfo.put("planCreatedAt", plan.getPlanCreatedAt());
+
+            response.put("success", true);
+            response.put("planInfo", planInfo);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("여행계획 정보 조회 실패", e);
+            response.put("success", false);
+            response.put("message", "여행계획 정보를 불러올 수 없습니다.");
             return ResponseEntity.status(500).body(response);
         }
     }
