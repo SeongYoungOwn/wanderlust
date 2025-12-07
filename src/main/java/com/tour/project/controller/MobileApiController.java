@@ -2659,7 +2659,7 @@ public class MobileApiController {
 
             String userId = loginUser.getUserId();
             boolean isWriter = userId.equals(plan.getPlanWriter());
-            boolean isParticipant = travelDAO.isUserJoined(Long.valueOf(travelPlanId), userId);
+            boolean isParticipant = travelDAO.isUserJoined((long) travelPlanId, userId);
 
             if (!isWriter && !isParticipant) {
                 response.put("success", false);
@@ -2798,7 +2798,7 @@ public class MobileApiController {
             }
 
             // 참여자 목록 조회
-            List<TravelParticipantDTO> participants = travelDAO.getParticipantsByTravelId(Long.valueOf(travelPlanId));
+            List<TravelParticipantDTO> participants = travelDAO.getParticipantsByTravelId((long) travelPlanId);
 
             // 작성자 정보 추가
             MemberDTO writer = memberDAO.getMember(plan.getPlanWriter());
@@ -2811,7 +2811,7 @@ public class MobileApiController {
                 Map<String, Object> writerInfo = new HashMap<>();
                 writerInfo.put("userId", writer.getUserId());
                 writerInfo.put("userName", writer.getUserName());
-                writerInfo.put("profileImage", writer.getUserProfileImage());
+                writerInfo.put("profileImage", writer.getProfileImage());
                 writerInfo.put("isWriter", true);
                 participantList.add(writerInfo);
             }
@@ -2825,7 +2825,7 @@ public class MobileApiController {
                             Map<String, Object> participantInfo = new HashMap<>();
                             participantInfo.put("userId", member.getUserId());
                             participantInfo.put("userName", member.getUserName());
-                            participantInfo.put("profileImage", member.getUserProfileImage());
+                            participantInfo.put("profileImage", member.getProfileImage());
                             participantInfo.put("isWriter", false);
                             participantList.add(participantInfo);
                         }
@@ -2885,7 +2885,7 @@ public class MobileApiController {
             planInfo.put("planContent", plan.getPlanContent());
             planInfo.put("planWriter", plan.getPlanWriter());
             planInfo.put("writerName", writer != null ? writer.getUserName() : plan.getPlanWriter());
-            planInfo.put("writerProfileImage", writer != null ? writer.getUserProfileImage() : null);
+            planInfo.put("writerProfileImage", writer != null ? writer.getProfileImage() : null);
             planInfo.put("planStartDate", plan.getPlanStartDate());
             planInfo.put("planEndDate", plan.getPlanEndDate());
             planInfo.put("planMaxParticipants", plan.getPlanMaxParticipants());
