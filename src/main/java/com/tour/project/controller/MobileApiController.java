@@ -2650,7 +2650,7 @@ public class MobileApiController {
 
         try {
             // 2. 해당 여행계획의 참여자인지 확인
-            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById(travelPlanId);
+            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById((long) travelPlanId);
             if (plan == null) {
                 response.put("success", false);
                 response.put("message", "존재하지 않는 여행계획입니다.");
@@ -2790,7 +2790,7 @@ public class MobileApiController {
 
         try {
             // 여행계획 조회
-            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById(travelPlanId);
+            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById((long) travelPlanId);
             if (plan == null) {
                 response.put("success", false);
                 response.put("message", "존재하지 않는 여행계획입니다.");
@@ -2867,7 +2867,7 @@ public class MobileApiController {
 
         try {
             // 여행계획 조회
-            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById(travelPlanId);
+            TravelPlanDTO plan = travelPlanDAO.getTravelPlanById((long) travelPlanId);
             if (plan == null) {
                 response.put("success", false);
                 response.put("message", "존재하지 않는 여행계획입니다.");
@@ -2888,10 +2888,10 @@ public class MobileApiController {
             planInfo.put("writerProfileImage", writer != null ? writer.getProfileImage() : null);
             planInfo.put("planStartDate", plan.getPlanStartDate());
             planInfo.put("planEndDate", plan.getPlanEndDate());
-            planInfo.put("planMaxParticipants", plan.getPlanMaxParticipants());
-            planInfo.put("planCurrentParticipants", plan.getPlanCurrentParticipants());
+            planInfo.put("planMaxParticipants", plan.getMaxParticipants());
+            planInfo.put("planCurrentParticipants", plan.getParticipantCount());
             planInfo.put("planStatus", plan.getPlanStatus());
-            planInfo.put("planCreatedAt", plan.getPlanCreatedAt());
+            planInfo.put("planCreatedAt", plan.getPlanRegdate());
 
             response.put("success", true);
             response.put("planInfo", planInfo);
