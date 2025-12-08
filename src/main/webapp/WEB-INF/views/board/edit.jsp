@@ -81,6 +81,10 @@
                             </c:if>
 
                             <form action="/board/edit/${board.boardId}" method="post" id="editForm">
+                                <!-- 숨겨진 필드: 카테고리와 이미지 유지 -->
+                                <input type="hidden" name="boardCategory" value="${board.boardCategory}">
+                                <input type="hidden" name="boardImage" value="${board.boardImage}">
+
                                 <div class="mb-4">
                                     <label for="boardTitle" class="form-label required">
                                         <i class="fas fa-heading me-2"></i>제목

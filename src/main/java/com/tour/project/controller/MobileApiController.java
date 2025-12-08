@@ -523,7 +523,12 @@ public class MobileApiController {
                     commentMap.put("boardId", comment.getBoardId());
                     commentMap.put("commentContent", comment.getCommentContent());
                     commentMap.put("commentWriter", comment.getCommentWriter());
-                    commentMap.put("commentRegdate", comment.getCommentRegdate());
+                    // Timestamp를 ISO 8601 문자열로 변환하여 반환
+                    if (comment.getCommentRegdate() != null) {
+                        commentMap.put("commentRegdate", comment.getCommentRegdate().toLocalDateTime().toString());
+                    } else {
+                        commentMap.put("commentRegdate", null);
+                    }
 
                     // 작성자 이름 조회
                     MemberDTO commentWriter = memberDAO.getMember(comment.getCommentWriter());

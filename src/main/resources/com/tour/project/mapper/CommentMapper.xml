@@ -4,7 +4,7 @@
 
     <insert id="insertComment" parameterType="com.tour.project.dto.CommentDTO">
         INSERT INTO comments (board_id, comment_content, comment_writer, comment_regdate)
-        VALUES (#{boardId}, #{commentContent}, #{commentWriter}, #{commentRegdate})
+        VALUES (#{boardId}, #{commentContent}, #{commentWriter}, NOW())
     </insert>
 
     <select id="getComment" parameterType="int" resultType="com.tour.project.dto.CommentDTO">
