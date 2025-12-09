@@ -1,6 +1,6 @@
-# Wanderlust 🌍
+# Wanderlust (웹)
 
-> AI 기반 여행 동행 매칭 플랫폼
+> AI 기반 여행 동행 매칭 플랫폼 - 백엔드 서버 + 웹 프론트엔드
 
 Wanderlust는 Claude AI를 활용하여 여행자들을 지능적으로 매칭하고, MBTI 기반 호환성 분석, AI 여행 계획 생성, 실시간 채팅 등 다양한 기능을 제공하는 종합 여행 플랫폼입니다.
 
@@ -12,7 +12,16 @@ Wanderlust는 Claude AI를 활용하여 여행자들을 지능적으로 매칭�
 
 ---
 
-## 🎯 주요 기능
+## 관련 프로젝트
+
+| 프로젝트 | 설명 | 기술 스택 |
+|---------|------|-----------|
+| **Wanderlust (웹)** - 현재 저장소 | 백엔드 서버 + 웹 프론트엔드 | Spring Boot, JSP, MariaDB |
+| **[Wanderlust Mobile (앱)](https://github.com/SeongYoungOwn/wanderlust_app)** | 모바일 앱 클라이언트 | Flutter, Dart |
+
+---
+
+## 주요 기능
 
 ### 🤖 AI 통합 기능
 - **AI 채팅**: Claude API 기반 실시간 여행 상담 및 추천
