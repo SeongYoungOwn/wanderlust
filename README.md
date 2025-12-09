@@ -104,6 +104,8 @@ cd wanderlust_new
 
 #### 2. 데이터베이스 설정
 
+**전체 스키마 파일**: [`src/main/resources/database/wanderlust_schema.sql`](src/main/resources/database/wanderlust_schema.sql)
+
 ```bash
 # MariaDB 접속
 mysql -u root -p
@@ -112,9 +114,16 @@ mysql -u root -p
 CREATE DATABASE IF NOT EXISTS wanderlust CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 # 사용자 권한 설정
+CREATE USER IF NOT EXISTS 'wanderlust'@'%' IDENTIFIED BY 'your-password';
 GRANT ALL PRIVILEGES ON wanderlust.* TO 'wanderlust'@'%';
 FLUSH PRIVILEGES;
+
+# 스키마 적용 (전체 테이블 생성)
+USE wanderlust;
+SOURCE src/main/resources/database/wanderlust_schema.sql;
 ```
+
+> **참고**: 스키마 파일에는 약 40개 이상의 테이블이 정의되어 있습니다. 회원, 여행 계획, AI 추천, 채팅, 커뮤니티, 매칭 등 전체 기능에 필요한 테이블이 포함됩니다.
 
 #### 3. 환경 변수 설정 (선택사항)
 
@@ -399,4 +408,4 @@ git push origin feature/새로운-기능
 
 **Made with ❤️ by Wanderlust Team**
 
-*최종 업데이트: 2025-10-29*
+*최종 업데이트: 2025-12-09*
